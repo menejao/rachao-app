@@ -9,6 +9,15 @@ export const createJogadorSchema = z.object({
   nivel: z.number().int().min(1).max(5),
 });
 
+export const updateJogadorSchema = z.object({
+  nome: z.string().min(2).optional(),
+  telefone: z.string().min(10).optional(),
+  email: z.string().email().nullable().optional(),
+  posicao: z.enum(["GOLEIRO", "FIXO", "ALA", "PIVO", "CORINGA"]).optional(),
+  nivel: z.number().int().min(1).max(5).optional(),
+  ativo: z.boolean().optional(),
+});
+
 export const listJogadoresQuerySchema = z.object({
   turmaId: z.string().optional(),
 });

@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { AppShell } from "@/components/layout/app-shell";
 import { MatchCard } from "@/components/matches/match-card";
+import { NovoJogoButton } from "@/components/jogos/novo-jogo-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { splitMatches } from "@/lib/dashboard-view";
@@ -19,7 +20,7 @@ export default async function JogosPage() {
         eyebrow="Agenda"
         title="Jogos"
         description="Proximos rachoes, historico recente e status de cada lista."
-        actions={<button className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]">Novo jogo</button>}
+        actions={<NovoJogoButton turmas={data.turmas} />}
       />
 
       <div className="space-y-8">

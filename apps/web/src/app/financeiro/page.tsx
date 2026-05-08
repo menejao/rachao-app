@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { StatCard } from "@/components/common/stat-card";
 import { AppShell } from "@/components/layout/app-shell";
+import { MarcarPagoButton } from "@/components/financeiro/marcar-pago-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { formatCurrency } from "@rachao/utils";
@@ -39,12 +40,20 @@ export default async function FinanceiroPage() {
                       Ref. {payment.referenciaMes}/{payment.referenciaAno}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <PaymentStatusBadge value={payment.status} />
-                    <p className="mt-2 font-black text-white">{formatCurrency(payment.valor)}</p>
+                  <div className="flex items-center gap-3">
+                    {payment.status !== "PAGO" && payment.status !== "ISENTO" && (
+                      <MarcarPagoButton paymentId={payment.id} />
+                    )}
+                    <div className="text-right">
+                      <PaymentStatusBadge value={payment.status} />
+                      <p className="mt-2 font-black text-white">{formatCurrency(payment.valor)}</p>
+                    </div>
                   </div>
                 </div>
               ))}
+              {data.financeiro.pagamentos.length === 0 && (
+                <p className="text-sm text-stone-500">Nenhum pagamento registrado.</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -61,12 +70,13 @@ export default async function FinanceiroPage() {
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <PaymentStatusBadge value={payment.status} />
-                    <button className="rounded-2xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-[#07110a]">
-                      Cobrar
-                    </button>
+                    <MarcarPagoButton paymentId={payment.id} />
                   </div>
                 </div>
               ))}
+              {data.financeiro.inadimplentes.length === 0 && (
+                <p className="text-sm text-stone-500">Sem inadimplentes. Caixa limpo.</p>
+              )}
             </div>
           </CardContent>
         </Card>

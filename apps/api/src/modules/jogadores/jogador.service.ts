@@ -1,5 +1,5 @@
 import type { CreateJogadorInput } from "@rachao/types";
-import type { JogadorRepository } from "./jogador.repository";
+import type { JogadorRepository, UpdateJogadorInput } from "./jogador.repository";
 
 export class JogadorService {
   private readonly repository: JogadorRepository;
@@ -14,5 +14,13 @@ export class JogadorService {
 
   create(input: CreateJogadorInput) {
     return this.repository.create(input);
+  }
+
+  update(id: string, input: UpdateJogadorInput) {
+    return this.repository.update(id, input);
+  }
+
+  delete(id: string) {
+    return this.repository.delete(id);
   }
 }

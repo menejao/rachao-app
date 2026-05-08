@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { AppShell } from "@/components/layout/app-shell";
+import { NovaTurmaButton } from "@/components/turmas/nova-turma-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { formatCurrency } from "@rachao/utils";
@@ -16,6 +17,7 @@ export default async function TurmasPage() {
         eyebrow="Estrutura"
         title="Turmas"
         description="Cada turma com cara de squad: agenda, local, mensalidade e tamanho do elenco."
+        actions={<NovaTurmaButton />}
       />
 
       {data.turmas.length === 0 ? (

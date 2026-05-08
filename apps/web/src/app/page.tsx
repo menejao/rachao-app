@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { StatCard } from "@/components/common/stat-card";
 import { Card, CardContent } from "@/components/ui/card";
+import { DisbararButton } from "@/components/dashboard/disparar-button";
 import { getDashboardData } from "@/lib/dashboard-data";
 import {
   getHomeStats,
@@ -22,17 +23,20 @@ export default async function HomePage() {
   const ranking = getQuickRanking(data);
   const alerts = getOrganizerAlerts(data);
 
+  const firstJob = data.jogos.find((j) =>
+    ["RASCUNHO", "CONFIRMACAO_ABERTA"].includes(j.status)
+  );
+  const jogoInfo = firstJob
+    ? { turmaId: firstJob.turmaId, dataJogo: firstJob.dataJogo, turmaNome: firstJob.turmaNome }
+    : null;
+
   return (
     <AppShell data={data} currentPath="/">
       <PageHeader
         eyebrow="Painel do organizador"
         title="Semana da pelada em uma tela"
         description="Proximo jogo, caixa, confirmacoes e ranking rapido em um fluxo leve para usar no celular e no desktop."
-        actions={
-          <button className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]">
-            Disparar confirmacao
-          </button>
-        }
+        actions={<DisbararButton jogoInfo={jogoInfo} />}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">

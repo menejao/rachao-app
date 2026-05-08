@@ -1,10 +1,21 @@
 import type { PrismaClient } from "@prisma/client";
-import type { CreateJogadorInput, JogadorSummary } from "@rachao/types";
+import type { CreateJogadorInput, JogadorSummary, Posicao } from "@rachao/types";
 import { normalizePhone } from "@rachao/utils";
+
+export type UpdateJogadorInput = {
+  nome?: string;
+  telefone?: string;
+  email?: string | null;
+  posicao?: Posicao;
+  nivel?: number;
+  ativo?: boolean;
+};
 
 export interface JogadorRepository {
   list(filters?: { turmaId?: string }): Promise<JogadorSummary[]>;
   create(input: CreateJogadorInput): Promise<JogadorSummary>;
+  update(id: string, input: UpdateJogadorInput): Promise<JogadorSummary>;
+  delete(id: string): Promise<void>;
 }
 
 export class PrismaJogadorRepository implements JogadorRepository {
@@ -22,7 +33,7 @@ export class PrismaJogadorRepository implements JogadorRepository {
       nome: jogador.nome,
       telefone: jogador.telefone,
       email: jogador.email,
-      posicao: jogador.posicao,
+      posicao: jogador.posicao as Posicao,
       nivel: jogador.nivel,
       ativo: jogador.ativo,
     }));
@@ -55,9 +66,38 @@ export class PrismaJogadorRepository implements JogadorRepository {
       nome: jogador.nome,
       telefone: jogador.telefone,
       email: jogador.email,
-      posicao: jogador.posicao,
+      posicao: jogador.posicao as Posicao,
       nivel: jogador.nivel,
       ativo: jogador.ativo,
     };
+  }
+
+  async update(id: string, input: UpdateJogadorInput): Promise<JogadorSummary> {
+    const jogador = await this.prisma.jogador.update({
+      where: { id },
+      data: {
+        ...(input.nome !== undefined && { nome: input.nome }),
+        ...(input.telefone !== undefined && { telefone: normalizePhone(input.telefone) }),
+        ...(input.email !== undefined && { email: input.email }),
+        ...(input.posicao !== undefined && { posicao: input.posicao }),
+        ...(input.nivel !== undefined && { nivel: input.nivel }),
+        ...(input.ativo !== undefined && { ativo: input.ativo }),
+      },
+    });
+
+    return {
+      id: jogador.id,
+      turmaId: jogador.turmaId,
+      nome: jogador.nome,
+      telefone: jogador.telefone,
+      email: jogador.email,
+      posicao: jogador.posicao as Posicao,
+      nivel: jogador.nivel,
+      ativo: jogador.ativo,
+    };
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.jogador.delete({ where: { id } });
   }
 }

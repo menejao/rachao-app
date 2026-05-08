@@ -24,7 +24,7 @@ import type {
   PresencaRepository,
 } from "../modules/presencas/presenca.repository";
 import type { TurmaRepository } from "../modules/turmas/turma.repository";
-import type { JogadorRepository } from "../modules/jogadores/jogador.repository";
+import type { JogadorRepository, UpdateJogadorInput } from "../modules/jogadores/jogador.repository";
 import type { PagamentoRepository } from "../modules/pagamentos/pagamento.repository";
 import type { GolRepository, GoalCommandContext } from "../modules/gols/gol.repository";
 
@@ -72,6 +72,27 @@ export class MockJogadorRepository implements JogadorRepository {
     const turma = demoStore.turmas.find((item) => item.id === input.turmaId);
     if (turma) turma.totalJogadores = (turma.totalJogadores ?? 0) + 1;
     return jogador;
+  }
+
+  async update(id: string, input: UpdateJogadorInput): Promise<JogadorSummary> {
+    const jogador = demoStore.jogadores.find((j) => j.id === id);
+    if (!jogador) throw new Error("Jogador não encontrado");
+    if (input.nome !== undefined) jogador.nome = input.nome;
+    if (input.telefone !== undefined) jogador.telefone = normalizePhone(input.telefone);
+    if (input.email !== undefined) jogador.email = input.email;
+    if (input.posicao !== undefined) jogador.posicao = input.posicao;
+    if (input.nivel !== undefined) jogador.nivel = input.nivel;
+    if (input.ativo !== undefined) jogador.ativo = input.ativo;
+    return { ...jogador };
+  }
+
+  async delete(id: string): Promise<void> {
+    const idx = demoStore.jogadores.findIndex((j) => j.id === id);
+    if (idx !== -1) {
+      const turma = demoStore.turmas.find((t) => t.id === demoStore.jogadores[idx]!.turmaId);
+      if (turma && turma.totalJogadores) turma.totalJogadores--;
+      demoStore.jogadores.splice(idx, 1);
+    }
   }
 }
 

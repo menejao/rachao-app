@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { URL } from "node:url";
-import { createJogadorSchema, listJogadoresQuerySchema } from "./contracts/jogador";
+import { createJogoSchema } from "./contracts/jogo";
+import { createJogadorSchema, listJogadoresQuerySchema, updateJogadorSchema } from "./contracts/jogador";
 import {
   cobrarInadimplentesSchema,
   createPagamentoSchema,
@@ -18,6 +19,7 @@ import { DashboardService } from "./modules/dashboard/dashboard.service";
 import { EstatisticaService } from "./modules/estatisticas/estatistica.service";
 import { PrismaGolRepository } from "./modules/gols/gol.repository";
 import { GolService } from "./modules/gols/gol.service";
+import { JogoService } from "./modules/jogos/jogo.service";
 import { PrismaJogadorRepository } from "./modules/jogadores/jogador.repository";
 import { JogadorService } from "./modules/jogadores/jogador.service";
 import { PrismaLogRepository } from "./modules/logs/log.repository";
@@ -65,6 +67,7 @@ const jobRepository = env.useMockData ? new MockJobRepository() : new PrismaJobR
 
 const turmaService = new TurmaService(turmaRepository);
 const jogadorService = new JogadorService(jogadorRepository);
+const jogoService = new JogoService({ useMock: env.useMockData, prisma: env.useMockData ? undefined : prisma });
 const estatisticaService = new EstatisticaService(
   golRepository,
   turmaRepository,
@@ -171,6 +174,30 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    const jogadorIdMatch = path.match(/^\/api\/jogadores\/([^/]+)$/);
+
+    if (method === "PATCH" && jogadorIdMatch) {
+      const body: import("zod").infer<typeof updateJogadorSchema> = updateJogadorSchema.parse(
+        await parseJsonBody(req)
+      );
+      json(res, 200, await jogadorService.update(jogadorIdMatch[1]!, body));
+      return;
+    }
+
+    if (method === "DELETE" && jogadorIdMatch) {
+      await jogadorService.delete(jogadorIdMatch[1]!);
+      json(res, 200, { ok: true });
+      return;
+    }
+
+    if (method === "POST" && path === "/api/jogos") {
+      const body: import("zod").infer<typeof createJogoSchema> = createJogoSchema.parse(
+        await parseJsonBody(req)
+      );
+      json(res, 201, await jogoService.create(body));
+      return;
+    }
+
     if (method === "GET" && path === "/api/pagamentos") {
       const query = listPagamentosQuerySchema.parse({
         turmaId: url.searchParams.get("turmaId") ?? undefined,
@@ -189,12 +216,11 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    const pagamentoPatchMatch = path.match(/^\/api\/pagamentos\/([^/]+)$/);
-    if (method === "PATCH" && pagamentoPatchMatch) {
-      const body: import("zod").infer<typeof updatePagamentoSchema> = updatePagamentoSchema.parse(
+    if (method === "POST" && path === "/api/pagamentos/cobrar-inadimplentes") {
+      const body: import("zod").infer<typeof cobrarInadimplentesSchema> = cobrarInadimplentesSchema.parse(
         await parseJsonBody(req)
       );
-      json(res, 200, await pagamentoService.update(pagamentoPatchMatch[1]!, body));
+      json(res, 200, await pagamentoService.cobrarInadimplentes(body));
       return;
     }
 
@@ -207,18 +233,19 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    const pagamentoDeleteMatch = path.match(/^\/api\/pagamentos\/([^/]+)$/);
-    if (method === "DELETE" && pagamentoDeleteMatch) {
-      await pagamentoService.delete(pagamentoDeleteMatch[1]!);
-      json(res, 200, { ok: true });
+    const pagamentoIdMatch = path.match(/^\/api\/pagamentos\/([^/]+)$/);
+
+    if (method === "PATCH" && pagamentoIdMatch) {
+      const body: import("zod").infer<typeof updatePagamentoSchema> = updatePagamentoSchema.parse(
+        await parseJsonBody(req)
+      );
+      json(res, 200, await pagamentoService.update(pagamentoIdMatch[1]!, body));
       return;
     }
 
-    if (method === "POST" && path === "/api/pagamentos/cobrar-inadimplentes") {
-      const body: import("zod").infer<typeof cobrarInadimplentesSchema> = cobrarInadimplentesSchema.parse(
-        await parseJsonBody(req)
-      );
-      json(res, 200, await pagamentoService.cobrarInadimplentes(body));
+    if (method === "DELETE" && pagamentoIdMatch) {
+      await pagamentoService.delete(pagamentoIdMatch[1]!);
+      json(res, 200, { ok: true });
       return;
     }
 

@@ -1,9 +1,10 @@
-import { RefreshCcw, Target } from "lucide-react";
+import { Target } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { AppShell } from "@/components/layout/app-shell";
 import { TeamCard } from "@/components/teams/team-card";
+import { RefazerSorteioButton } from "@/components/times/refazer-sorteio-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { getDifferenceBetweenTeams, getTeamColumns } from "@/lib/dashboard-view";
@@ -13,18 +14,18 @@ export default async function TimesPage() {
   const teams = getTeamColumns(data);
   const difference = getDifferenceBetweenTeams(data.timesGerados);
 
+  const jogoId =
+    data.timesGerados[0]?.jogoId ??
+    data.jogos.find((j) => j.status !== "FINALIZADO")?.id ??
+    "";
+
   return (
     <AppShell data={data} currentPath="/times">
       <PageHeader
         eyebrow="Sorteio"
         title="Times gerados"
         description="Cards grandes para leitura rapida no vestiario, com media tecnica e composicao."
-        actions={
-          <button className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]">
-            <RefreshCcw className="h-4 w-4" />
-            Refazer sorteio
-          </button>
-        }
+        actions={<RefazerSorteioButton jogoId={jogoId} />}
       />
 
       <Card className="mb-6">

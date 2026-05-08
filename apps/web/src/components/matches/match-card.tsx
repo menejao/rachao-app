@@ -2,6 +2,7 @@ import type { JogoSummary } from "@rachao/types";
 import { CalendarDays, UsersRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
+import { GerarTimesButton } from "./gerar-times-button";
 
 export function MatchCard({ match }: { match: JogoSummary }) {
   return (
@@ -12,9 +13,7 @@ export function MatchCard({ match }: { match: JogoSummary }) {
             <p className="text-base font-semibold text-white">{match.turmaNome}</p>
             <p className="mt-1 text-sm text-stone-400">{match.status.replaceAll("_", " ")}</p>
           </div>
-          <button className="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-[#07110a]">
-            Gerar times
-          </button>
+          <GerarTimesButton jogoId={match.id} />
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl bg-white/[0.04] p-3">
