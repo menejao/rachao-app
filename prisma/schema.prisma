@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TurmaStatus {
+  ATIVA
+  INATIVA
+}
+
+enum Posicao {
+  GOLEIRO
+  FIXO
+  ALA
+  PIVO
+  CORINGA
+}
+
+enum JogoStatus {
+  RASCUNHO
+  CONFIRMACAO_ABERTA
+  FECHADO
+  TIMES_GERADOS
+  FINALIZADO
+}
+
+enum RespostaPresenca {
+  SIM
+  NAO
+  PENDENTE
+}
+
+enum PagamentoStatus {
+  PENDENTE
+  PAGO
+  ATRASADO
+  ISENTO
+}
+
+model Organizador {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  telefone  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  turmas Turma[]
+}
+
+model Turma {
+  id            String        @id @default(cuid())
+  nome          String
+  local         String?
+  diaSemana     Int
+  horario       String
+  mensalidade   Decimal       @db.Decimal(10, 2)
+  status        TurmaStatus   @default(ATIVA)
+  organizadorId String
+  whatsappGroupId String?
+  whatsappProvider String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  organizador Organizador @relation(fields: [organizadorId], references: [id])
+  jogadores   Jogador[]
+  jogos       Jogo[]
+  pagamentos  Pagamento[]
+  logs        EventoLog[]
+}
+
+model Jogador {
+  id          String    @id @default(cuid())
+  turmaId     String
+  nome        String
+  telefone    String    @unique
+  email       String?
+  posicao     Posicao
+  nivel       Int
+  ativo       Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  turma      Turma       @relation(fields: [turmaId], references: [id])
+  presencas  Presenca[]
+  pagamentos Pagamento[]
+  gols       Gol[]       @relation("golJogador")
+  assists    Gol[]       @relation("golAssistencia")
+  logs       EventoLog[]
+
+  @@index([turmaId])
+}
+
+model Jogo {
+  id          String      @id @default(cuid())
+  turmaId     String
+  dataJogo    DateTime
+  status      JogoStatus  @default(RASCUNHO)
+  observacoes String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  turma     Turma      @relation(fields: [turmaId], references: [id])
+  presencas Presenca[]
+  times     Time[]
+  gols      Gol[]
+  logs      EventoLog[]
+
+  @@index([turmaId, dataJogo])
+}
+
+model Time {
+  id         String    @id @default(cuid())
+  jogoId     String
+  nome       String
+  cor        String?
+  nivelMedio Decimal?  @db.Decimal(4, 2)
+  createdAt  DateTime  @default(now())
+
+  jogo      Jogo       @relation(fields: [jogoId], references: [id])
+  presencas Presenca[]
+
+  @@index([jogoId])
+}
+
+model Presenca {
+  id         String            @id @default(cuid())
+  jogoId     String
+  jogadorId  String
+  timeId     String?
+  resposta   RespostaPresenca  @default(PENDENTE)
+  respondeuEm DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  jogo    Jogo    @relation(fields: [jogoId], references: [id])
+  jogador Jogador @relation(fields: [jogadorId], references: [id])
+  time    Time?   @relation(fields: [timeId], references: [id])
+
+  @@unique([jogoId, jogadorId])
+  @@index([jogoId])
+  @@index([jogadorId])
+}
+
+model Pagamento {
+  id         String           @id @default(cuid())
+  turmaId     String
+  jogadorId   String
+  referenciaMes Int
+  referenciaAno Int
+  valor       Decimal         @db.Decimal(10, 2)
+  status      PagamentoStatus @default(PENDENTE)
+  pagoEm      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  turma   Turma   @relation(fields: [turmaId], references: [id])
+  jogador Jogador @relation(fields: [jogadorId], references: [id])
+
+  @@unique([jogadorId, referenciaMes, referenciaAno])
+  @@index([turmaId, referenciaAno, referenciaMes])
+}
+
+model Gol {
+  id            String    @id @default(cuid())
+  jogoId         String
+  jogadorId      String
+  assistenciaId  String?
+  minuto         Int?
+  createdAt      DateTime @default(now())
+
+  jogo        Jogo    @relation(fields: [jogoId], references: [id])
+  jogador     Jogador @relation("golJogador", fields: [jogadorId], references: [id])
+  assistencia Jogador? @relation("golAssistencia", fields: [assistenciaId], references: [id])
+
+  @@index([jogoId])
+  @@index([jogadorId])
+}
+
+model EventoLog {
+  id          String   @id @default(cuid())
+  turmaId      String?
+  jogoId       String?
+  jogadorId    String?
+  tipo         String
+  origem       String
+  payload      Json?
+  createdAt    DateTime @default(now())
+
+  turma Turma?   @relation(fields: [turmaId], references: [id])
+  jogo  Jogo?    @relation(fields: [jogoId], references: [id])
+  jogador Jogador? @relation(fields: [jogadorId], references: [id])
+
+  @@index([turmaId, createdAt])
+  @@index([jogoId, createdAt])
+}

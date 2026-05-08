@@ -1,0 +1,13 @@
+{
+  "name": "@rachao/utils",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/utils/src/index.js",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.test.json && node dist-test/packages/utils/src/index.test.js"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+.turbo
+dist
+coverage
+.env
+.env.*
+!.env.example
+prisma/dev.db
+.npm-cache
+node_modules
+.next
+.turbo
+*.log
