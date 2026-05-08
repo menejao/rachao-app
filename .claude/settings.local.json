@@ -12,7 +12,9 @@
       "Bash(Select-Object FullName)",
       "Bash(ConvertTo-Json)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\\\\apps\\\\web\\\\src\" -Recurse -Include \"*.tsx\", \"*.ts\", \"*.jsx\", \"*.js\")",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(where vercel *)",
+      "Bash(vercel --version)"
     ]
   }
 }
