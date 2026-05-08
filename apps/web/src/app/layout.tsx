@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PWARegister } from "./pwa-register";
 
 export const metadata: Metadata = {
-  title: "Rachao",
-  description: "SaaS para gestao de peladas recorrentes",
+  title: "Rachão",
+  description: "Organizador de rachões, turmas, jogos e finanças.",
+  manifest: "/manifest.json",
+  themeColor: "#020617",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Rachão",
+  },
 };
 
 export default function RootLayout({
@@ -13,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <PWARegister />
+        {children}
+      </body>
     </html>
   );
 }
