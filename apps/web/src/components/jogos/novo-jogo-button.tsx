@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 
 interface JogoForm {
   turmaId: string;
@@ -14,6 +15,7 @@ interface JogoForm {
 
 export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<JogoForm>({ turmaId: turmas[0]?.id ?? "", dataJogo: "", observacoes: "" });
   const [saving, setSaving] = useState(false);
@@ -41,6 +43,7 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
         dataJogo: form.dataJogo,
         observacoes: form.observacoes || undefined,
       });
+      toast("Jogo criado com sucesso!");
       router.refresh();
       setOpen(false);
     } catch (e) {
@@ -51,14 +54,14 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
   }
 
   const inputClass =
-    "w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-stone-500";
+    "w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-stone-500 focus:border-emerald-500/40 transition";
   const labelClass = "mb-1.5 block text-xs text-stone-400";
 
   return (
     <>
       <button
         onClick={openModal}
-        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]"
+        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 active:scale-95"
       >
         Novo jogo
       </button>
@@ -103,14 +106,14 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => setOpen(false)}
-              className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300"
+              className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300 transition hover:bg-white/[0.04]"
             >
               Cancelar
             </button>
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] disabled:opacity-50"
+              className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 disabled:opacity-50"
             >
               {saving ? "Criando..." : "Criar jogo"}
             </button>

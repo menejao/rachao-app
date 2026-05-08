@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 
 interface JogoInfo {
   turmaId: string;
@@ -13,13 +14,14 @@ interface JogoInfo {
 
 export function DisbararButton({ jogoInfo }: { jogoInfo: JogoInfo | null }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function handleClick() {
     if (!jogoInfo) {
-      alert("Nenhum jogo disponivel. Crie um jogo primeiro em Jogos.");
+      toast("Nenhum jogo disponivel. Crie um jogo primeiro em Jogos.", "error");
       return;
     }
     setError(null);
@@ -35,10 +37,11 @@ export function DisbararButton({ jogoInfo }: { jogoInfo: JogoInfo | null }) {
         turmaId: jogoInfo.turmaId,
         dataJogo: jogoInfo.dataJogo,
       });
+      toast("Confirmacao disparada para todos os jogadores!");
       router.refresh();
       setOpen(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao disparar confirmacao");
+      setError(e instanceof Error ? e.message : "Erro ao disparar confirmacao.");
     } finally {
       setLoading(false);
     }
@@ -48,7 +51,7 @@ export function DisbararButton({ jogoInfo }: { jogoInfo: JogoInfo | null }) {
     <>
       <button
         onClick={handleClick}
-        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]"
+        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 active:scale-95"
       >
         Disparar confirmacao
       </button>
@@ -63,14 +66,14 @@ export function DisbararButton({ jogoInfo }: { jogoInfo: JogoInfo | null }) {
         <div className="mt-5 flex gap-3">
           <button
             onClick={() => setOpen(false)}
-            className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300"
+            className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300 transition hover:bg-white/[0.04]"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] disabled:opacity-50"
+            className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 disabled:opacity-50"
           >
             {loading ? "Disparando..." : "Confirmar"}
           </button>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { ResponsiveDataView } from "@/components/common/responsive-data-view";
@@ -38,6 +39,7 @@ export function JogadoresClient({
   turmaNameMap: Record<string, string>;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [editPlayer, setEditPlayer] = useState<JogadorSummary | null>(null);
@@ -87,6 +89,7 @@ export function JogadoresClient({
         posicao: form.posicao,
         nivel: Number(form.nivel),
       });
+      toast("Jogador adicionado com sucesso!");
       router.refresh();
       setShowAdd(false);
     } catch (e) {
@@ -111,6 +114,7 @@ export function JogadoresClient({
         posicao: form.posicao,
         nivel: Number(form.nivel),
       });
+      toast("Jogador atualizado com sucesso!");
       router.refresh();
       setEditPlayer(null);
     } catch (e) {
@@ -126,6 +130,7 @@ export function JogadoresClient({
     setFormError(null);
     try {
       await api.delete(`/api/jogadores/${confirmDeleteId}`);
+      toast("Jogador removido.");
       router.refresh();
       setConfirmDeleteId(null);
     } catch (e) {

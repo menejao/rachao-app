@@ -10,7 +10,9 @@
       "Bash(git add *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\" -Recurse -File)",
       "Bash(Select-Object FullName)",
-      "Bash(ConvertTo-Json)"
+      "Bash(ConvertTo-Json)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\\\\apps\\\\web\\\\src\" -Recurse -Include \"*.tsx\", \"*.ts\", \"*.jsx\", \"*.js\")",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

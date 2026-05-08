@@ -18,3 +18,7 @@ export const listLogsQuerySchema = z.object({
   jogoId: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
+
+export const updatePresencaSchema = z.object({
+  resposta: z.enum(["SIM", "NAO", "PENDENTE"]),
+});

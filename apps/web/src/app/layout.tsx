@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PWARegister } from "./pwa-register";
+import { ToastProvider } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
   title: "Rachão",
@@ -23,7 +24,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <PWARegister />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

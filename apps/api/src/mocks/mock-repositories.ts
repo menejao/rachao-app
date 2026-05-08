@@ -23,7 +23,7 @@ import type {
   PresenceWebhookContext,
   PresencaRepository,
 } from "../modules/presencas/presenca.repository";
-import type { TurmaRepository } from "../modules/turmas/turma.repository";
+import type { TurmaRepository, UpdateTurmaInput } from "../modules/turmas/turma.repository";
 import type { JogadorRepository, UpdateJogadorInput } from "../modules/jogadores/jogador.repository";
 import type { PagamentoRepository } from "../modules/pagamentos/pagamento.repository";
 import type { GolRepository, GoalCommandContext } from "../modules/gols/gol.repository";
@@ -49,6 +49,17 @@ export class MockTurmaRepository implements TurmaRepository {
     };
     demoStore.turmas.unshift(turma);
     return turma;
+  }
+
+  async update(id: string, input: UpdateTurmaInput): Promise<TurmaSummary> {
+    const turma = demoStore.turmas.find((t) => t.id === id);
+    if (!turma) throw new Error("Turma nao encontrada");
+    if (input.nome !== undefined) turma.nome = input.nome;
+    if (input.local !== undefined) turma.local = input.local;
+    if (input.diaSemana !== undefined) turma.diaSemana = input.diaSemana;
+    if (input.horario !== undefined) turma.horario = input.horario;
+    if (input.mensalidade !== undefined) turma.mensalidade = input.mensalidade;
+    return { ...turma };
   }
 }
 
@@ -192,6 +203,12 @@ export class MockPresencaRepository implements PresencaRepository {
       jogadorId: item.jogadorId,
       resposta: item.resposta,
     }));
+  }
+
+  async updatePresenca(id: string, resposta: "SIM" | "NAO" | "PENDENTE") {
+    const presenca = demoStore.presencas.find((item) => item.id === id);
+    if (!presenca) throw new Error("Presenca nao encontrada");
+    presenca.resposta = resposta;
   }
 }
 

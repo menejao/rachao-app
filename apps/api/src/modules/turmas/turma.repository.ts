@@ -1,9 +1,18 @@
 import type { PrismaClient } from "@prisma/client";
 import type { CreateTurmaInput, TurmaSummary } from "@rachao/types";
 
+export interface UpdateTurmaInput {
+  nome?: string;
+  local?: string | null;
+  diaSemana?: number;
+  horario?: string;
+  mensalidade?: number;
+}
+
 export interface TurmaRepository {
   list(filters?: { organizadorId?: string }): Promise<TurmaSummary[]>;
   create(input: CreateTurmaInput): Promise<TurmaSummary>;
+  update(id: string, input: UpdateTurmaInput): Promise<TurmaSummary>;
 }
 
 export class PrismaTurmaRepository implements TurmaRepository {
@@ -69,6 +78,33 @@ export class PrismaTurmaRepository implements TurmaRepository {
       createdAt: turma.createdAt.toISOString(),
       updatedAt: turma.updatedAt.toISOString(),
       totalJogadores: 0,
+    };
+  }
+
+  async update(id: string, input: UpdateTurmaInput): Promise<TurmaSummary> {
+    const turma = await this.prisma.turma.update({
+      where: { id },
+      data: {
+        ...(input.nome !== undefined && { nome: input.nome }),
+        ...(input.local !== undefined && { local: input.local }),
+        ...(input.diaSemana !== undefined && { diaSemana: input.diaSemana }),
+        ...(input.horario !== undefined && { horario: input.horario }),
+        ...(input.mensalidade !== undefined && { mensalidade: input.mensalidade }),
+      },
+      include: { _count: { select: { jogadores: true } } },
+    });
+
+    return {
+      id: turma.id,
+      nome: turma.nome,
+      local: turma.local,
+      diaSemana: turma.diaSemana,
+      horario: turma.horario,
+      mensalidade: Number(turma.mensalidade),
+      status: turma.status,
+      createdAt: turma.createdAt.toISOString(),
+      updatedAt: turma.updatedAt.toISOString(),
+      totalJogadores: turma._count.jogadores,
     };
   }
 }

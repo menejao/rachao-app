@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 
 const DIAS = ["Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"];
 
@@ -17,6 +18,7 @@ interface TurmaForm {
 
 export function NovaTurmaButton() {
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TurmaForm>({ nome: "", local: "", diaSemana: 3, horario: "20:00", mensalidade: 80 });
   const [saving, setSaving] = useState(false);
@@ -51,6 +53,7 @@ export function NovaTurmaButton() {
         mensalidade: Number(form.mensalidade),
         organizadorId: process.env.NEXT_PUBLIC_ORGANIZADOR_ID ?? "demo",
       });
+      toast(`Turma "${form.nome.trim()}" criada com sucesso!`);
       router.refresh();
       setOpen(false);
     } catch (e) {
@@ -61,14 +64,14 @@ export function NovaTurmaButton() {
   }
 
   const inputClass =
-    "w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-stone-500";
+    "w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-stone-500 focus:border-emerald-500/40 focus:ring-0 transition";
   const labelClass = "mb-1.5 block text-xs text-stone-400";
 
   return (
     <>
       <button
         onClick={openModal}
-        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a]"
+        className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 active:scale-95"
       >
         Nova turma
       </button>
@@ -132,14 +135,14 @@ export function NovaTurmaButton() {
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => setOpen(false)}
-              className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300"
+              className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-stone-300 transition hover:bg-white/[0.04]"
             >
               Cancelar
             </button>
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] disabled:opacity-50"
+              className="flex-1 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400 disabled:opacity-50"
             >
               {saving ? "Criando..." : "Criar turma"}
             </button>

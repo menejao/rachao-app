@@ -32,6 +32,7 @@ export interface PresencaRepository {
     resposta: "SIM" | "NAO";
   }): Promise<void>;
   listForStats(): Promise<Array<{ jogadorId: string; resposta: "SIM" | "NAO" | "PENDENTE" }>>;
+  updatePresenca(id: string, resposta: "SIM" | "NAO" | "PENDENTE"): Promise<void>;
 }
 
 export class PrismaPresencaRepository implements PresencaRepository {
@@ -204,5 +205,15 @@ export class PrismaPresencaRepository implements PresencaRepository {
     });
 
     return presencas;
+  }
+
+  async updatePresenca(id: string, resposta: "SIM" | "NAO" | "PENDENTE") {
+    await this.prisma.presenca.update({
+      where: { id },
+      data: {
+        resposta,
+        respondeuEm: resposta !== "PENDENTE" ? new Date() : null,
+      },
+    });
   }
 }

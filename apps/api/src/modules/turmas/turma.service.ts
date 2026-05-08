@@ -1,5 +1,5 @@
 import type { CreateTurmaInput } from "@rachao/types";
-import type { TurmaRepository } from "./turma.repository";
+import type { TurmaRepository, UpdateTurmaInput } from "./turma.repository";
 
 export class TurmaService {
   private readonly repository: TurmaRepository;
@@ -14,5 +14,9 @@ export class TurmaService {
 
   create(input: CreateTurmaInput) {
     return this.repository.create(input);
+  }
+
+  update(id: string, input: UpdateTurmaInput) {
+    return this.repository.update(id, input);
   }
 }

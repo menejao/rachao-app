@@ -9,10 +9,10 @@ import {
   markPagamentoPagoSchema,
   updatePagamentoSchema,
 } from "./contracts/pagamento";
-import { dispatchPresenceSchema, listLogsQuerySchema, webhookMessageSchema } from "./contracts/presenca";
+import { dispatchPresenceSchema, listLogsQuerySchema, updatePresencaSchema, webhookMessageSchema } from "./contracts/presenca";
 import { runJobSchema } from "./contracts/jobs";
 import { generateTeamsSchema } from "./contracts/times";
-import { createTurmaSchema, listTurmasQuerySchema } from "./contracts/turma";
+import { createTurmaSchema, listTurmasQuerySchema, updateTurmaSchema } from "./contracts/turma";
 import { handleError, json, parseJsonBody } from "./core/http";
 import { prisma } from "./core/prisma";
 import { DashboardService } from "./modules/dashboard/dashboard.service";
@@ -158,6 +158,16 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    const turmaIdMatch = path.match(/^\/api\/turmas\/([^/]+)$/);
+
+    if (method === "PATCH" && turmaIdMatch) {
+      const body: import("zod").infer<typeof updateTurmaSchema> = updateTurmaSchema.parse(
+        await parseJsonBody(req)
+      );
+      json(res, 200, await turmaService.update(turmaIdMatch[1]!, body));
+      return;
+    }
+
     if (method === "GET" && path === "/api/jogadores") {
       const query = listJogadoresQuerySchema.parse({
         turmaId: url.searchParams.get("turmaId") ?? undefined,
@@ -245,6 +255,17 @@ const server = createServer(async (req, res) => {
 
     if (method === "DELETE" && pagamentoIdMatch) {
       await pagamentoService.delete(pagamentoIdMatch[1]!);
+      json(res, 200, { ok: true });
+      return;
+    }
+
+    const presencaIdMatch = path.match(/^\/api\/presencas\/([^/]+)$/);
+
+    if (method === "PATCH" && presencaIdMatch) {
+      const body: import("zod").infer<typeof updatePresencaSchema> = updatePresencaSchema.parse(
+        await parseJsonBody(req)
+      );
+      await presencaRepository.updatePresenca(presencaIdMatch[1]!, body.resposta);
       json(res, 200, { ok: true });
       return;
     }
