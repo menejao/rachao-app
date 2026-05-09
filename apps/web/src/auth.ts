@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import type { DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import { authConfig } from "@/auth.config";
 import { findUserByCredentials } from "@/lib/store";
 
 declare module "next-auth" {
@@ -25,25 +26,7 @@ const loginSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET ?? "dev-secret-changeme-in-production",
-  session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.activeTeamId = user.activeTeamId;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.role = token.role as "ADMIN" | "PLAYER";
-      session.user.activeTeamId = token.activeTeamId as string;
-      return session;
-    },
-  },
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
