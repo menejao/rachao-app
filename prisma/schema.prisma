@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  PLAYER
+}
+
 enum TurmaStatus {
   ATIVA
   INATIVA
@@ -41,32 +46,67 @@ enum PagamentoStatus {
   ISENTO
 }
 
-model Organizador {
-  id        String   @id @default(cuid())
-  nome      String
-  email     String   @unique
-  telefone  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  turmas Turma[]
+  memberships Membership[]
+  invitesSent Invite[]     @relation("InviteCreator")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  turmaId   String
+  role      Role     @default(PLAYER)
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turma Turma @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, turmaId])
+  @@index([turmaId])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  token       String    @unique @default(cuid())
+  email       String?
+  turmaId     String
+  createdById String
+  role        Role      @default(PLAYER)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  turma     Turma @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  createdBy User  @relation("InviteCreator", fields: [createdById], references: [id])
+
+  @@index([token])
+  @@index([turmaId])
 }
 
 model Turma {
-  id            String        @id @default(cuid())
-  nome          String
-  local         String?
-  diaSemana     Int
-  horario       String
-  mensalidade   Decimal       @db.Decimal(10, 2)
-  status        TurmaStatus   @default(ATIVA)
-  organizadorId String
-  whatsappGroupId String?
+  id               String      @id @default(cuid())
+  nome             String
+  local            String?
+  diaSemana        Int
+  horario          String
+  mensalidade      Decimal     @db.Decimal(10, 2)
+  status           TurmaStatus @default(ATIVA)
+  whatsappGroupId  String?
   whatsappProvider String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  organizador Organizador @relation(fields: [organizadorId], references: [id])
+  memberships Membership[]
+  invites     Invite[]
   jogadores   Jogador[]
   jogos       Jogo[]
   pagamentos  Pagamento[]

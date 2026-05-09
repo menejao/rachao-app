@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { CircleDollarSign, ClipboardList, LayoutDashboard, ShieldCheck, Users } from "lucide-react";
+import { CircleDollarSign, ClipboardList, LayoutDashboard, ShieldCheck, User, Users } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,7 @@ const items: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/jogadores", label: "Jogadores", icon: Users },
   { href: "/jogos", label: "Jogos", icon: ClipboardList },
   { href: "/presencas", label: "Presencas", icon: ShieldCheck },
-  { href: "/financeiro", label: "Caixa", icon: CircleDollarSign },
+  { href: "/perfil", label: "Perfil", icon: User },
 ];
 
 export function MobileNav({ currentPath }: { currentPath: string }) {

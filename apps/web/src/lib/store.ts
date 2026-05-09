@@ -14,6 +14,32 @@ import { generateBalancedTeams, normalizePhone } from "@rachao/utils";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+export interface DemoUser {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string | null;
+  role: "ADMIN" | "PLAYER";
+  activeTeamId: string;
+}
+
+export interface DemoMembership {
+  userId: string;
+  turmaId: string;
+  role: "ADMIN" | "PLAYER";
+}
+
+export interface DemoInvite {
+  id: string;
+  token: string;
+  turmaId: string;
+  turmaNome: string;
+  role: "ADMIN" | "PLAYER";
+  expiresAt: string;
+  usedAt: string | null;
+}
+
 interface DemoPresence {
   id: string;
   jogoId: string;
@@ -48,6 +74,9 @@ const store: {
   times: DemoTeam[];
   gols: GoalSummary[];
   pagamentos: PagamentoSummary[];
+  users: DemoUser[];
+  memberships: DemoMembership[];
+  invites: DemoInvite[];
 } = {
   turmas: [
     {
@@ -100,6 +129,15 @@ const store: {
     { id: "pg2", turmaId: "turma-demo-1", jogadorId: "j2", jogadorNome: "Beto", referenciaMes: 5, referenciaAno: 2026, valor: 80, status: "ATRASADO", pagoEm: null },
     { id: "pg3", turmaId: "turma-demo-1", jogadorId: "j3", jogadorNome: "Rafa", referenciaMes: 5, referenciaAno: 2026, valor: 80, status: "PENDENTE", pagoEm: null },
   ],
+  users: [
+    { id: "user-admin", name: "Joao (Admin)", email: "admin@rachao.com", password: "123456", phone: null, role: "ADMIN", activeTeamId: "turma-demo-1" },
+    { id: "user-player", name: "Leo (Jogador)", email: "jogador@rachao.com", password: "123456", phone: null, role: "PLAYER", activeTeamId: "turma-demo-1" },
+  ],
+  memberships: [
+    { userId: "user-admin", turmaId: "turma-demo-1", role: "ADMIN" },
+    { userId: "user-player", turmaId: "turma-demo-1", role: "PLAYER" },
+  ],
+  invites: [],
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -366,6 +404,104 @@ export function updatePresenca(id: string, resposta: RespostaPresenca): void {
   if (!p) throw new Error("Presença não encontrada");
   p.resposta = resposta;
 }
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export function findUserByCredentials(email: string, password: string): DemoUser | null {
+  return store.users.find((u) => u.email === email && u.password === password) ?? null;
+}
+
+export function findUserById(id: string): DemoUser | null {
+  return store.users.find((u) => u.id === id) ?? null;
+}
+
+export function registerUser(
+  name: string,
+  email: string,
+  password: string,
+  teamName: string
+): { userId: string; turmaId: string } {
+  if (store.users.find((u) => u.email === email)) {
+    throw new Error("Email já cadastrado.");
+  }
+  const turma = createTurma({ nome: teamName, diaSemana: 3, horario: "20:00", mensalidade: 80 });
+  const user: DemoUser = {
+    id: uid("user", store.users),
+    name,
+    email,
+    password,
+    phone: null,
+    role: "ADMIN",
+    activeTeamId: turma.id,
+  };
+  store.users.push(user);
+  store.memberships.push({ userId: user.id, turmaId: turma.id, role: "ADMIN" });
+  return { userId: user.id, turmaId: turma.id };
+}
+
+export function updateUserProfile(
+  userId: string,
+  input: Partial<{ name: string; phone: string | null }>
+): DemoUser {
+  const user = store.users.find((u) => u.id === userId);
+  if (!user) throw new Error("Usuário não encontrado.");
+  if (input.name  !== undefined) user.name  = input.name;
+  if (input.phone !== undefined) user.phone = input.phone;
+  return { ...user };
+}
+
+export function getUserMemberships(userId: string) {
+  return store.memberships
+    .filter((m) => m.userId === userId)
+    .map((m) => {
+      const turma = store.turmas.find((t) => t.id === m.turmaId);
+      return { turmaId: m.turmaId, turmaNome: turma?.nome ?? "Turma", role: m.role };
+    });
+}
+
+// ─── Invites ──────────────────────────────────────────────────────────────────
+
+function randomToken(): string {
+  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+}
+
+export function createInvite(turmaId: string, role: "ADMIN" | "PLAYER" = "PLAYER"): DemoInvite {
+  const turma = store.turmas.find((t) => t.id === turmaId);
+  if (!turma) throw new Error("Turma não encontrada.");
+  const invite: DemoInvite = {
+    id: uid("inv", store.invites),
+    token: randomToken(),
+    turmaId,
+    turmaNome: turma.nome,
+    role,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    usedAt: null,
+  };
+  store.invites.push(invite);
+  return invite;
+}
+
+export function getInvite(token: string): DemoInvite | null {
+  const invite = store.invites.find((i) => i.token === token);
+  if (!invite) return null;
+  if (invite.usedAt) return null;
+  if (new Date(invite.expiresAt) < new Date()) return null;
+  return invite;
+}
+
+export function acceptInvite(token: string, userId: string): void {
+  const invite = getInvite(token);
+  if (!invite) throw new Error("Convite inválido ou expirado.");
+  const already = store.memberships.find((m) => m.userId === userId && m.turmaId === invite.turmaId);
+  if (!already) {
+    store.memberships.push({ userId, turmaId: invite.turmaId, role: invite.role });
+    const user = store.users.find((u) => u.id === userId);
+    if (user) user.activeTeamId = invite.turmaId;
+  }
+  invite.usedAt = new Date().toISOString();
+}
+
+// ─── Mutations: Presencas ─────────────────────────────────────────────────────
 
 export function dispararPresencas(turmaId: string, dataJogo: string): { jogoId: string; playerCount: number } {
   const turma = store.turmas.find((t) => t.id === turmaId);
