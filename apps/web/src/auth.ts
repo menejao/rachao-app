@@ -41,24 +41,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const { db } = await import("@/lib/prisma");
           const { compare } = await import("bcryptjs");
 
-          const user = await db.user.findUnique({ where: { email: parsed.data.email } });
-          if (!user) return null;
+          const dbUser = await db.user.findUnique({ where: { email: parsed.data.email } });
 
-          const valid = await compare(parsed.data.password, user.passwordHash);
-          if (!valid) return null;
+          if (dbUser) {
+            const valid = await compare(parsed.data.password, dbUser.passwordHash);
+            if (!valid) return null;
 
-          const membership = await db.membership.findFirst({
-            where: { userId: user.id },
-            orderBy: { createdAt: "asc" },
-          });
+            const membership = await db.membership.findFirst({
+              where: { userId: dbUser.id },
+              orderBy: { createdAt: "asc" },
+            });
 
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: (membership?.role ?? "PLAYER") as "ADMIN" | "PLAYER",
-            activeTeamId: membership?.turmaId ?? "",
-          };
+            return {
+              id: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email,
+              role: (membership?.role ?? "PLAYER") as "ADMIN" | "PLAYER",
+              activeTeamId: membership?.turmaId ?? "",
+            };
+          }
+          // user not in DB → fall through to demo store
         }
 
         const user = findUserByCredentials(parsed.data.email, parsed.data.password);
