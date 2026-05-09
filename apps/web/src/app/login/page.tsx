@@ -2,10 +2,10 @@
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/";
@@ -96,10 +96,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-stone-500">
           Sem conta?{" "}
-          <Link
-            href={"/signup" as never}
-            className="text-emerald-400 hover:text-emerald-300"
-          >
+          <Link href={"/signup" as never} className="text-emerald-400 hover:text-emerald-300">
             Criar como organizador
           </Link>
         </p>
@@ -129,5 +126,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PWARegister } from "./pwa-register";
 import { Providers } from "./providers";
@@ -8,12 +8,15 @@ export const metadata: Metadata = {
   title: "Rachão",
   description: "Organizador de rachões, turmas, jogos e finanças.",
   manifest: "/manifest.json",
-  themeColor: "#020617",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Rachão",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#020617",
 };
 
 export default function RootLayout({
