@@ -53,6 +53,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
+
+        if (process.env.DATABASE_URL) {
+          const { db } = await import("@/lib/prisma");
+          const { compare } = await import("bcryptjs");
+
+          const user = await db.user.findUnique({ where: { email: parsed.data.email } });
+          if (!user) return null;
+
+          const valid = await compare(parsed.data.password, user.passwordHash);
+          if (!valid) return null;
+
+          const membership = await db.membership.findFirst({
+            where: { userId: user.id },
+            orderBy: { createdAt: "asc" },
+          });
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: (membership?.role ?? "PLAYER") as "ADMIN" | "PLAYER",
+            activeTeamId: membership?.turmaId ?? "",
+          };
+        }
+
         const user = findUserByCredentials(parsed.data.email, parsed.data.password);
         if (!user) return null;
         return {

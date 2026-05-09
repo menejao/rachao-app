@@ -7,10 +7,12 @@ import { AppShell } from "@/components/layout/app-shell";
 import { MarcarPagoButton } from "@/components/financeiro/marcar-pago-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardData } from "@/lib/dashboard-data";
+import { auth } from "@/auth";
 import { formatCurrency } from "@rachao/utils";
 
 export default async function FinanceiroPage() {
-  const data = await getDashboardData();
+  const [data, session] = await Promise.all([getDashboardData(), auth()]);
+  const canEdit = session?.user.role === "ADMIN";
 
   return (
     <AppShell data={data} currentPath="/financeiro">
@@ -42,7 +44,7 @@ export default async function FinanceiroPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     {payment.status !== "PAGO" && payment.status !== "ISENTO" && (
-                      <MarcarPagoButton paymentId={payment.id} />
+                      <MarcarPagoButton paymentId={payment.id} canEdit={canEdit} />
                     )}
                     <div className="text-right">
                       <PaymentStatusBadge value={payment.status} />
@@ -70,7 +72,7 @@ export default async function FinanceiroPage() {
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <PaymentStatusBadge value={payment.status} />
-                    <MarcarPagoButton paymentId={payment.id} />
+                    <MarcarPagoButton paymentId={payment.id} canEdit={canEdit} />
                   </div>
                 </div>
               ))}

@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 
-export function MarcarPagoButton({ paymentId }: { paymentId: string }) {
+export function MarcarPagoButton({ paymentId, canEdit }: { paymentId: string; canEdit: boolean }) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  if (!canEdit) return null;
 
   async function handle() {
     setLoading(true);
