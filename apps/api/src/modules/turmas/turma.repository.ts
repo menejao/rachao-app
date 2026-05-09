@@ -18,9 +18,8 @@ export interface TurmaRepository {
 export class PrismaTurmaRepository implements TurmaRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async list(filters?: { organizadorId?: string }) {
+  async list(_filters?: { organizadorId?: string }) {
     const turmas = await this.prisma.turma.findMany({
-      where: filters?.organizadorId ? { organizadorId: filters.organizadorId } : undefined,
       include: {
         _count: {
           select: { jogadores: true },
@@ -44,16 +43,6 @@ export class PrismaTurmaRepository implements TurmaRepository {
   }
 
   async create(input: CreateTurmaInput) {
-    const organizador = await this.prisma.organizador.upsert({
-      where: { id: input.organizadorId },
-      create: {
-        id: input.organizadorId,
-        nome: "Organizador MVP",
-        email: `${input.organizadorId}@rachao.local`,
-      },
-      update: {},
-    });
-
     const turma = await this.prisma.turma.create({
       data: {
         nome: input.nome,
@@ -61,7 +50,6 @@ export class PrismaTurmaRepository implements TurmaRepository {
         diaSemana: input.diaSemana,
         horario: input.horario,
         mensalidade: input.mensalidade,
-        organizadorId: organizador.id,
         whatsappGroupId: input.whatsappGroupId,
         whatsappProvider: input.whatsappProvider,
       },
