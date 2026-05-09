@@ -64,7 +64,13 @@ export default async function JogoDetailPage({
             <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500">{jogo.turmaNome}</p>
             <h1 className="mt-1 text-2xl font-bold text-white">{formatDate(jogo.dataJogo)}</h1>
           </div>
-          <JogoStatusBadge status={jogo.status} confirmados={jogo.confirmados} size="md" />
+          <JogoStatusBadge
+            status={jogo.status}
+            confirmados={jogo.confirmados}
+            limite={jogo.limitJogadores ?? undefined}
+            naFila={jogo.naFila}
+            size="md"
+          />
         </div>
       </div>
 
@@ -74,6 +80,7 @@ export default async function JogoDetailPage({
           <MinhaPresencaCard
             presencaId={myPresenca.id}
             resposta={myPresenca.resposta}
+            posicaoFila={myPresenca.posicaoFila}
             readonly={!canConfirm}
           />
         )}

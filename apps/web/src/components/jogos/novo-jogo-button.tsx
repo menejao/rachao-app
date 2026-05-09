@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/toast";
 interface JogoForm {
   turmaId: string;
   dataJogo: string;
+  limitJogadores: string;
   observacoes: string;
 }
 
@@ -17,7 +18,12 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<JogoForm>({ turmaId: turmas[0]?.id ?? "", dataJogo: "", observacoes: "" });
+  const [form, setForm] = useState<JogoForm>({
+    turmaId: turmas[0]?.id ?? "",
+    dataJogo: "",
+    limitJogadores: "14",
+    observacoes: "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,21 +32,23 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
 
   function openModal() {
     setError(null);
-    setForm({ turmaId: turmas[0]?.id ?? "", dataJogo: "", observacoes: "" });
+    setForm({ turmaId: turmas[0]?.id ?? "", dataJogo: "", limitJogadores: "14", observacoes: "" });
     setOpen(true);
   }
 
   async function handleCreate() {
     if (!form.turmaId || !form.dataJogo) {
-      setError("Turma e data do jogo sao obrigatorios.");
+      setError("Turma e data do jogo são obrigatórios.");
       return;
     }
     setSaving(true);
     setError(null);
     try {
+      const limite = parseInt(form.limitJogadores);
       await api.post("/api/jogos", {
         turmaId: form.turmaId,
         dataJogo: form.dataJogo,
+        limitJogadores: !isNaN(limite) && limite > 0 ? limite : null,
         observacoes: form.observacoes || undefined,
       });
       toast("Jogo criado com sucesso!");
@@ -94,7 +102,22 @@ export function NovoJogoButton({ turmas }: { turmas: TurmaSummary[] }) {
             />
           </div>
           <div>
-            <label className={labelClass}>Observacoes (opcional)</label>
+            <label className={labelClass}>Limite de jogadores</label>
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={form.limitJogadores}
+              onChange={(e) => field("limitJogadores", e.target.value)}
+              placeholder="14"
+              className={inputClass}
+            />
+            <p className="mt-1 text-[11px] text-stone-600">
+              Ao atingir, próximas confirmações entram na fila de espera automaticamente.
+            </p>
+          </div>
+          <div>
+            <label className={labelClass}>Observações (opcional)</label>
             <input
               value={form.observacoes}
               onChange={(e) => field("observacoes", e.target.value)}

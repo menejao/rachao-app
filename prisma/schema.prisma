@@ -137,13 +137,14 @@ model Jogador {
 }
 
 model Jogo {
-  id          String      @id @default(cuid())
-  turmaId     String
-  dataJogo    DateTime
-  status      JogoStatus  @default(RASCUNHO)
-  observacoes String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             String     @id @default(cuid())
+  turmaId        String
+  dataJogo       DateTime
+  status         JogoStatus @default(RASCUNHO)
+  observacoes    String?
+  limitJogadores Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   turma     Turma      @relation(fields: [turmaId], references: [id])
   presencas Presenca[]
@@ -169,14 +170,15 @@ model Time {
 }
 
 model Presenca {
-  id         String            @id @default(cuid())
-  jogoId     String
-  jogadorId  String
-  timeId     String?
-  resposta   RespostaPresenca  @default(PENDENTE)
+  id          String           @id @default(cuid())
+  jogoId      String
+  jogadorId   String
+  timeId      String?
+  resposta    RespostaPresenca @default(PENDENTE)
+  posicaoFila Int?
   respondeuEm DateTime?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   jogo    Jogo    @relation(fields: [jogoId], references: [id])
   jogador Jogador @relation(fields: [jogadorId], references: [id])

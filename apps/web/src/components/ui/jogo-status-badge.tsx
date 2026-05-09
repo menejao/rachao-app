@@ -6,12 +6,13 @@ interface JogoStatusBadgeProps {
   status: JogoStatus;
   confirmados?: number;
   limite?: number;
+  naFila?: number;
   size?: "sm" | "md";
 }
 
-function resolveLabel(status: JogoStatus, confirmados: number, limite: number): string {
+function resolveLabel(status: JogoStatus, confirmados: number, limite: number, naFila: number): string {
   if (status === "CONFIRMACAO_ABERTA") {
-    if (confirmados >= limite) return "Lotado";
+    if (confirmados >= limite) return naFila > 0 ? `Lotado (+${naFila})` : "Lotado";
     if (confirmados >= Math.floor(limite * 0.8)) return "Quase lotado";
     return "Lista aberta";
   }
@@ -51,8 +52,8 @@ const DOT: Record<JogoStatus, string> = {
   FINALIZADO: "bg-stone-500",
 };
 
-export function JogoStatusBadge({ status, confirmados = 0, limite = LIMITE_DEFAULT, size = "sm" }: JogoStatusBadgeProps) {
-  const label = resolveLabel(status, confirmados, limite);
+export function JogoStatusBadge({ status, confirmados = 0, limite = LIMITE_DEFAULT, naFila = 0, size = "sm" }: JogoStatusBadgeProps) {
+  const label = resolveLabel(status, confirmados, limite, naFila);
   const classes = resolveClasses(status, confirmados, limite);
 
   const dotColor =

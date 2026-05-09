@@ -54,6 +54,7 @@ export default async function HomePage() {
           <MinhaPresencaCard
             presencaId={myPresenca.id}
             resposta={myPresenca.resposta}
+            posicaoFila={myPresenca.posicaoFila}
             readonly={!canConfirm}
           />
         )}
@@ -74,6 +75,8 @@ export default async function HomePage() {
                 <JogoStatusBadge
                   status={nextJogo.status}
                   confirmados={nextJogo.confirmados}
+                  limite={nextJogo.limitJogadores ?? undefined}
+                  naFila={nextJogo.naFila}
                   size="md"
                 />
               </div>

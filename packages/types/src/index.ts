@@ -147,6 +147,8 @@ export interface JogoSummary {
   confirmados: number;
   recusados: number;
   pendentes: number;
+  limitJogadores?: number | null;
+  naFila?: number;
 }
 
 export interface PresencaSummary {
@@ -157,6 +159,7 @@ export interface PresencaSummary {
   turmaNome: string;
   resposta: RespostaPresenca;
   timeNome?: string | null;
+  posicaoFila?: number | null;
 }
 
 export interface TimeSummary {

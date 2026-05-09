@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
-    const body = await req.json() as { turmaId?: string; dataJogo: string };
+    const body = await req.json() as { turmaId?: string; dataJogo: string; limitJogadores?: number | null; observacoes?: string };
     const turmaId = body.turmaId || session.user.activeTeamId;
     if (!turmaId || !body.dataJogo) {
       return NextResponse.json({ error: "turmaId e dataJogo são obrigatórios" }, { status: 400 });
@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
           turmaId,
           dataJogo: new Date(body.dataJogo),
           status: "RASCUNHO",
+          limitJogadores: body.limitJogadores ?? null,
+          observacoes: body.observacoes ?? null,
         },
       });
       return NextResponse.json({

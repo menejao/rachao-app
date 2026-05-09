@@ -29,10 +29,11 @@ const STATUS_CONFIG = {
 interface MinhaPresencaCardProps {
   presencaId: string;
   resposta: RespostaPresenca;
+  posicaoFila?: number | null;
   readonly?: boolean;
 }
 
-export function MinhaPresencaCard({ presencaId, resposta: initialResposta, readonly }: MinhaPresencaCardProps) {
+export function MinhaPresencaCard({ presencaId, resposta: initialResposta, posicaoFila, readonly }: MinhaPresencaCardProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [resposta, setResposta] = useState(initialResposta);
@@ -54,12 +55,15 @@ export function MinhaPresencaCard({ presencaId, resposta: initialResposta, reado
     }
   }
 
-  const status = STATUS_CONFIG[resposta];
+  const isInFila = resposta === "SIM" && posicaoFila !== null && posicaoFila !== undefined && posicaoFila > 0;
+  const status = isInFila
+    ? { label: `Fila de espera — posição ${posicaoFila}`, color: "text-orange-300", bg: "bg-orange-500/15 border-orange-400/20" }
+    : STATUS_CONFIG[resposta];
 
   return (
     <Card>
       <CardContent className="pt-5">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-2">
           <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Minha presença</p>
           <span
             className={`rounded-full border px-3 py-0.5 text-[11px] font-medium ${status.bg} ${status.color}`}
@@ -67,6 +71,11 @@ export function MinhaPresencaCard({ presencaId, resposta: initialResposta, reado
             {status.label}
           </span>
         </div>
+        {isInFila && (
+          <p className="mb-3 rounded-xl bg-orange-500/10 px-3 py-2 text-[11px] text-orange-200">
+            Lista cheia. Você ocupa a posição {posicaoFila} na fila de espera e será promovido automaticamente se uma vaga abrir.
+          </p>
+        )}
 
         {readonly ? (
           <div

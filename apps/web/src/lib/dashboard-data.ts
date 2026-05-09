@@ -76,9 +76,11 @@ export async function getDashboardData(): Promise<DashboardData> {
     turmaNome: j.turma.nome,
     dataJogo: j.dataJogo.toISOString().slice(0, 10),
     status: j.status,
-    confirmados: j.presencas.filter((p) => p.resposta === "SIM").length,
+    confirmados: j.presencas.filter((p) => p.resposta === "SIM" && p.posicaoFila === null).length,
     recusados: j.presencas.filter((p) => p.resposta === "NAO").length,
     pendentes: j.presencas.filter((p) => p.resposta === "PENDENTE").length,
+    limitJogadores: j.limitJogadores ?? null,
+    naFila: j.presencas.filter((p) => p.posicaoFila !== null && (p.posicaoFila ?? 0) > 0).length,
   }));
 
   const turmaMap = new Map(turmas.map((t) => [t.id, t.nome]));
@@ -91,6 +93,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     turmaNome: p.jogo.turma.nome,
     resposta: p.resposta,
     timeNome: p.time?.nome ?? null,
+    posicaoFila: p.posicaoFila ?? null,
   }));
 
   const timesSummary: TimeSummary[] = times.map((t) => ({

@@ -37,6 +37,7 @@ export default async function PresencasPage() {
           <MinhaPresencaCard
             presencaId={myPresenca.id}
             resposta={myPresenca.resposta}
+            posicaoFila={myPresenca.posicaoFila}
             readonly={!canConfirm}
           />
         )}
