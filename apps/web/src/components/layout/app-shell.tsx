@@ -26,7 +26,7 @@ export async function AppShell({
     : undefined;
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-0">
+    <div className="min-h-screen pb-24 xl:pb-0">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <Sidebar currentPath={currentPath} user={user} />
 
@@ -41,7 +41,7 @@ export async function AppShell({
         </div>
       </div>
 
-      <MobileNav currentPath={currentPath} />
+      <MobileNav currentPath={currentPath} role={user?.role} />
     </div>
   );
 }

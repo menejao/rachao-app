@@ -1,24 +1,30 @@
 import type { LucideIcon } from "lucide-react";
-import { CircleDollarSign, ClipboardList, LayoutDashboard, ShieldCheck, User, Users } from "lucide-react";
+import { CircleDollarSign, ClipboardList, LayoutDashboard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { MobileMenuDrawer } from "./mobile-menu-drawer";
+import type { UserRole } from "@/lib/permissions";
 
-const items: Array<{ href: string; label: string; icon: LucideIcon }> = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/jogadores", label: "Jogadores", icon: Users },
+const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
+  { href: "/", label: "Início", icon: LayoutDashboard },
   { href: "/jogos", label: "Jogos", icon: ClipboardList },
-  { href: "/presencas", label: "Presencas", icon: ShieldCheck },
-  { href: "/perfil", label: "Perfil", icon: User },
+  { href: "/presencas", label: "Presenças", icon: ShieldCheck },
+  { href: "/financeiro", label: "Financeiro", icon: CircleDollarSign },
 ];
 
-export function MobileNav({ currentPath }: { currentPath: string }) {
+export function MobileNav({
+  currentPath,
+  role,
+}: {
+  currentPath: string;
+  role?: UserRole;
+}) {
   return (
     <nav className="fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-white/10 bg-[#11141b]/95 px-2 py-2 shadow-[0_18px_45px_rgba(0,0,0,0.45)] backdrop-blur xl:hidden">
       <div className="grid grid-cols-5 gap-1">
-        {items.map((item) => {
-          const active = currentPath === item.href;
+        {navItems.map((item) => {
+          const active = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
           const Icon = item.icon;
-
           return (
             <Link
               key={item.href}
@@ -33,6 +39,7 @@ export function MobileNav({ currentPath }: { currentPath: string }) {
             </Link>
           );
         })}
+        <MobileMenuDrawer currentPath={currentPath} role={role} />
       </div>
     </nav>
   );

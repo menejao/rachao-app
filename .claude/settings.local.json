@@ -14,7 +14,30 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\\\\apps\\\\web\\\\src\" -Recurse -Include \"*.tsx\", \"*.ts\", \"*.jsx\", \"*.js\")",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(where vercel *)",
-      "Bash(vercel --version)"
+      "Bash(vercel --version)",
+      "Bash(git commit *)",
+      "Bash(git filter-branch *)",
+      "Bash(git stash *)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter 'sed \"/Co-Authored-By:/d\"' -- --all)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx prisma *)",
+      "Bash(Remove-Item -Force \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\\\\node_modules\\\\.prisma\\\\client\\\\query_engine-windows.dll.node\" -ErrorAction SilentlyContinue)",
+      "Bash(npx next *)",
+      "Bash(gh run *)",
+      "Bash(vercel ls *)",
+      "Bash(vercel logs *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel build *)",
+      "Bash(vercel pull *)",
+      "Bash(npx turbo *)",
+      "Bash(vercel --prod)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\joão.benedito\\\\OneDrive - GENIALNET GESTÃO E TECNOLOGIA LTDA - EPP\\\\Documentos\\\\Rachao\\\\apps\\\\web\\\\src\" -Recurse -Include \"*.tsx\", \"*.ts\")",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-List)"
     ]
   }
 }

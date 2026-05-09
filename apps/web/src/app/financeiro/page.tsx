@@ -1,4 +1,4 @@
-import { CircleDollarSign, CreditCard, Receipt, Siren } from "lucide-react";
+import { CircleDollarSign, CreditCard, Eye, Receipt, Siren } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/common/payment-status-badge";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
@@ -13,9 +13,18 @@ import { formatCurrency } from "@rachao/utils";
 export default async function FinanceiroPage() {
   const [data, session] = await Promise.all([getDashboardData(), auth()]);
   const canEdit = session?.user.role === "ADMIN";
+  const isPlayer = session?.user.role === "PLAYER";
 
   return (
     <AppShell data={data} currentPath="/financeiro">
+      {isPlayer && (
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-sky-400/20 bg-sky-500/[0.06] px-4 py-3">
+          <Eye className="h-4 w-4 shrink-0 text-sky-400" />
+          <p className="text-sm text-sky-200">
+            Você está visualizando o financeiro da equipe em modo leitura.
+          </p>
+        </div>
+      )}
       <PageHeader
         eyebrow="Caixa"
         title="Financeiro"

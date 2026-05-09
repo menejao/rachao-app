@@ -3,19 +3,56 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getInvite, acceptInvite } from "@/lib/store";
 
+async function getInviteData(token: string) {
+  if (process.env.DATABASE_URL) {
+    const { db } = await import("@/lib/prisma");
+    const invite = await db.invite.findUnique({
+      where: { token },
+      include: { turma: true },
+    });
+    if (!invite || invite.usedAt || invite.expiresAt < new Date()) return null;
+    return {
+      id: invite.id,
+      token: invite.token,
+      turmaNome: invite.turma.nome,
+      turmaId: invite.turmaId,
+      role: invite.role as "ADMIN" | "PLAYER",
+    };
+  }
+  return getInvite(token);
+}
+
+async function handleAcceptDB(token: string, userId: string) {
+  "use server";
+  if (process.env.DATABASE_URL) {
+    const { db } = await import("@/lib/prisma");
+    const invite = await db.invite.findUnique({ where: { token } });
+    if (!invite || invite.usedAt) return;
+    await db.membership.upsert({
+      where: { userId_turmaId: { userId, turmaId: invite.turmaId } },
+      create: { userId, turmaId: invite.turmaId, role: invite.role },
+      update: { role: invite.role },
+    });
+    await db.invite.update({ where: { token }, data: { usedAt: new Date() } });
+  } else {
+    acceptInvite(token, userId);
+  }
+  redirect("/");
+}
+
 export default async function ConvitePage({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const invite = getInvite(token);
+  const invite = await getInviteData(token);
 
   if (!invite) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#020617] px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[28px] bg-rose-500/10 text-3xl mx-auto">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[28px] bg-rose-500/10 text-3xl">
             ✗
           </div>
           <h1 className="text-xl font-bold text-white">Convite inválido</h1>
@@ -38,8 +75,7 @@ export default async function ConvitePage({
   async function handleAccept() {
     "use server";
     if (!session) return;
-    acceptInvite(token, session.user.id);
-    redirect("/");
+    await handleAcceptDB(token, session.user.id);
   }
 
   return (
@@ -49,11 +85,13 @@ export default async function ConvitePage({
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[28px] bg-gradient-to-br from-emerald-400 to-emerald-600 text-2xl font-black text-[#07110a] shadow-[0_20px_60px_rgba(34,197,94,0.35)]">
             R
           </div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-stone-500">Rachao</p>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-stone-500">Rachão</p>
         </div>
 
         <div className="rounded-3xl border border-white/8 bg-white/[0.03] p-6 text-center">
-          <p className="text-xs uppercase tracking-widest text-stone-500">Convite para</p>
+          <p className="text-xs uppercase tracking-widest text-stone-500">
+            Convite para
+          </p>
           <h1 className="mt-2 text-2xl font-bold text-white">{invite.turmaNome}</h1>
           <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1">
             <span className="text-xs font-medium text-emerald-300">

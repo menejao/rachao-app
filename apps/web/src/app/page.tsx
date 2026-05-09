@@ -1,161 +1,222 @@
-import { AlertTriangle, CircleDollarSign, Clock3, Goal, Trophy, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, CircleDollarSign, Users } from "lucide-react";
+import Link from "next/link";
+import { auth } from "@/auth";
 import { AppShell } from "@/components/layout/app-shell";
-import { PageHeader } from "@/components/common/page-header";
-import { SectionTitle } from "@/components/common/section-title";
-import { StatCard } from "@/components/common/stat-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { DisbararButton } from "@/components/dashboard/disparar-button";
 import { getDashboardData } from "@/lib/dashboard-data";
-import {
-  getHomeStats,
-  getLatestResponses,
-  getOrganizerAlerts,
-  getQuickRanking,
-  getWeeklyTimeline,
-} from "@/lib/dashboard-view";
+import { getOrganizerAlerts } from "@/lib/dashboard-view";
 import { formatCurrency } from "@rachao/utils";
+import { formatDate } from "@/lib/format";
 
 export default async function HomePage() {
-  const data = await getDashboardData();
-  const stats = getHomeStats(data);
-  const timeline = getWeeklyTimeline(data);
-  const latestResponses = getLatestResponses(data);
-  const ranking = getQuickRanking(data);
-  const alerts = getOrganizerAlerts(data);
+  const [data, session] = await Promise.all([getDashboardData(), auth()]);
 
-  const firstJob = data.jogos.find((j) =>
-    ["RASCUNHO", "CONFIRMACAO_ABERTA"].includes(j.status)
+  const role = session?.user.role ?? "PLAYER";
+  const isAdmin = role === "ADMIN";
+  const firstName = (session?.user.name ?? "Usuário").split(" ")[0];
+
+  const nextJogo = data.jogos.find((j) =>
+    ["RASCUNHO", "CONFIRMACAO_ABERTA", "FECHADO", "TIMES_GERADOS"].includes(j.status)
   );
-  const jogoInfo = firstJob
-    ? { turmaId: firstJob.turmaId, dataJogo: firstJob.dataJogo, turmaNome: firstJob.turmaNome }
+
+  const alerts = isAdmin ? getOrganizerAlerts(data) : [];
+
+  const jogoInfo = nextJogo
+    ? { turmaId: nextJogo.turmaId, dataJogo: nextJogo.dataJogo, turmaNome: nextJogo.turmaNome }
     : null;
+
+  const statusLabel: Record<string, string> = {
+    RASCUNHO: "Rascunho",
+    CONFIRMACAO_ABERTA: "Lista aberta",
+    FECHADO: "Lista fechada",
+    TIMES_GERADOS: "Times sorteados",
+    FINALIZADO: "Finalizado",
+  };
+
+  const statusColor: Record<string, string> = {
+    RASCUNHO: "text-stone-400",
+    CONFIRMACAO_ABERTA: "text-emerald-400",
+    FECHADO: "text-yellow-400",
+    TIMES_GERADOS: "text-sky-400",
+    FINALIZADO: "text-stone-500",
+  };
 
   return (
     <AppShell data={data} currentPath="/">
-      <PageHeader
-        eyebrow="Painel do organizador"
-        title="Semana da pelada em uma tela"
-        description="Proximo jogo, caixa, confirmacoes e ranking rapido em um fluxo leve para usar no celular e no desktop."
-        actions={<DisbararButton jogoInfo={jogoInfo} />}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <StatCard title="Proximo jogo" value={stats.nextGameLabel} helper="Agenda principal da turma" icon={Clock3} />
-        <StatCard title="Confirmados" value={String(stats.confirmed)} helper="Base para fechar lista" icon={Users} accent="emerald" />
-        <StatCard title="Pendentes" value={String(stats.pending)} helper="Cobrar antes do sorteio" icon={AlertTriangle} accent="yellow" />
-        <StatCard title="Inadimplentes" value={String(stats.debtors)} helper="Risco para o caixa do mes" icon={CircleDollarSign} accent="red" />
-        <StatCard title="Saldo da turma" value={formatCurrency(stats.balance)} helper="Leitura rapida do caixa" icon={CircleDollarSign} accent="blue" />
-        <StatCard title="Artilheiro do mes" value={stats.topScorer} helper="Destaque da resenha" icon={Trophy} accent="yellow" />
+      {/* Welcome */}
+      <div className="mb-6">
+        <p className="text-[11px] uppercase tracking-[0.25em] text-stone-500">
+          {data.turmas[0]?.nome ?? "Sem turma ativa"}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold text-white">
+          Olá, {firstName}!
+        </h1>
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardContent className="pt-5">
-            <SectionTitle title="Linha do tempo da semana" description="Tudo que precisa acontecer ate o jogo." />
-            <div className="space-y-4">
-              {timeline.map((item) => (
-                <div key={item.title} className="flex gap-4 rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-                  <div className="mt-1 h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(74,222,128,0.9)]" />
-                  <div>
-                    <p className="font-semibold text-white">{item.title}</p>
-                    <p className="mt-1 text-sm text-stone-400">{item.description}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-emerald-300">{item.status}</p>
-                  </div>
+      <div className="space-y-4">
+        {/* Próximo jogo */}
+        {nextJogo ? (
+          <Card>
+            <CardContent className="pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500">
+                    Próximo jogo
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-white">
+                    {formatDate(nextJogo.dataJogo)}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <span
+                  className={`rounded-full border border-white/10 px-3 py-1 text-[11px] font-medium ${statusColor[nextJogo.status] ?? "text-stone-400"}`}
+                >
+                  {statusLabel[nextJogo.status] ?? nextJogo.status}
+                </span>
+              </div>
 
-        <Card>
-          <CardContent className="pt-5">
-            <SectionTitle title="Alertas do organizador" description="Coisas que pedem acao agora." />
-            <div className="space-y-3">
-              {alerts.length === 0 ? (
-                <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4 text-sm text-stone-400">
-                  Sem alertas criticos. Fluxo limpo.
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="rounded-2xl bg-emerald-500/10 p-3 text-center">
+                  <p className="text-xl font-black text-emerald-300">
+                    {nextJogo.confirmados}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-stone-500">Confirmados</p>
                 </div>
-              ) : (
-                alerts.map((alert) => (
-                  <div key={alert} className="rounded-[24px] border border-rose-400/12 bg-rose-500/[0.06] p-4 text-sm text-rose-100">
-                    {alert}
-                  </div>
-                ))
+                <div className="rounded-2xl bg-yellow-500/10 p-3 text-center">
+                  <p className="text-xl font-black text-yellow-300">
+                    {nextJogo.pendentes}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-stone-500">Pendentes</p>
+                </div>
+                <div className="rounded-2xl bg-rose-500/10 p-3 text-center">
+                  <p className="text-xl font-black text-rose-300">
+                    {nextJogo.recusados}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-stone-500">Recusados</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <Link
+                  href={`/jogos/${nextJogo.id}` as never}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] py-3 text-sm text-white transition hover:bg-white/[0.07]"
+                >
+                  Ver detalhes
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                {isAdmin && nextJogo.status === "CONFIRMACAO_ABERTA" && (
+                  <DisbararButton jogoInfo={jogoInfo} />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="pt-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
+                  <CalendarDays className="h-5 w-5 text-stone-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-white">Sem jogo agendado</p>
+                  <p className="text-sm text-stone-500">
+                    {isAdmin ? "Crie um novo jogo para começar." : "Aguardando o próximo jogo."}
+                  </p>
+                </div>
+              </div>
+              {isAdmin && (
+                <Link
+                  href={"/jogos" as never}
+                  className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3 text-sm font-semibold text-[#07110a] transition hover:bg-emerald-400"
+                >
+                  Criar jogo
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        )}
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        <Card className="xl:col-span-1">
+        {/* Resumo financeiro */}
+        <Card>
           <CardContent className="pt-5">
-            <SectionTitle title="Ultimas respostas do WhatsApp" description="Leitura rapida de quem respondeu." />
-            <div className="space-y-3">
-              {latestResponses.map((item) => (
-                <div key={item.id} className="rounded-[24px] bg-white/[0.03] p-4">
-                  <p className="font-medium text-white">{item.jogadorNome}</p>
-                  <p className="mt-1 text-sm text-stone-500">{item.turmaNome}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-emerald-300">{item.resposta}</p>
-                </div>
-              ))}
+            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500">
+              Caixa do mês
+            </p>
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CircleDollarSign className="h-5 w-5 text-emerald-400" />
+                <span className="text-xl font-black text-white">
+                  {formatCurrency(data.financeiro.saldoMensal)}
+                </span>
+              </div>
+              <Link
+                href={"/financeiro" as never}
+                className="flex items-center gap-1 text-sm text-stone-400 transition hover:text-white"
+              >
+                Ver financeiro
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-1">
-          <CardContent className="pt-5">
-            <SectionTitle title="Ranking rapido" description="Quem decide e quem sempre cola." />
-            <div className="space-y-3">
-              {ranking.map((item, index) => (
-                <div key={item.jogadorId} className="flex items-center justify-between rounded-[24px] bg-white/[0.03] p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400/12 font-black text-yellow-200">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{item.jogadorNome}</p>
-                      <p className="text-sm text-stone-500">{item.turmaNome}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-white">{item.total}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-stone-500">gols</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {isAdmin && data.financeiro.inadimplentes.length > 0 && (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-rose-400/15 bg-rose-500/[0.06] px-3 py-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
+                <p className="text-sm text-rose-200">
+                  {data.financeiro.inadimplentes.length} jogador
+                  {data.financeiro.inadimplentes.length > 1 ? "es" : ""} inadimplente
+                  {data.financeiro.inadimplentes.length > 1 ? "s" : ""}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="xl:col-span-1">
-          <CardContent className="pt-5">
-            <SectionTitle title="Destaques da semana" description="Resumo de caixa, elenco e jogo." />
-            <div className="space-y-3">
-              <div className="rounded-[24px] bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-emerald-300">
-                  <Goal className="h-4 w-4" />
-                  Artilheiro em alta
-                </div>
-                <p className="mt-2 text-lg font-bold text-white">{stats.topScorer}</p>
+        {/* Alertas do organizador */}
+        {isAdmin && alerts.length > 0 && (
+          <div className="space-y-2">
+            {alerts.map((alert) => (
+              <div
+                key={alert}
+                className="flex items-start gap-3 rounded-2xl border border-yellow-400/15 bg-yellow-500/[0.06] px-4 py-3"
+              >
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-400" />
+                <p className="text-sm text-yellow-200">{alert}</p>
               </div>
-              <div className="rounded-[24px] bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-sky-300">
-                  <Users className="h-4 w-4" />
-                  Confirmacao do jogo
-                </div>
-                <p className="mt-2 text-lg font-bold text-white">{stats.confirmed} confirmados</p>
-              </div>
-              <div className="rounded-[24px] bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-yellow-200">
-                  <CircleDollarSign className="h-4 w-4" />
-                  Saldo atual
-                </div>
-                <p className="mt-2 text-lg font-bold text-white">{formatCurrency(stats.balance)}</p>
-              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Atalhos rápidos */}
+        {isAdmin && (
+          <div>
+            <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-stone-500">
+              Acesso rápido
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Link
+                href={"/jogadores" as never}
+                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
+              >
+                <Users className="h-5 w-5 text-stone-400" />
+                <span className="text-sm text-white">Jogadores</span>
+              </Link>
+              <Link
+                href={"/jogos" as never}
+                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
+              >
+                <CalendarDays className="h-5 w-5 text-stone-400" />
+                <span className="text-sm text-white">Jogos</span>
+              </Link>
+              <Link
+                href={"/financeiro" as never}
+                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-4 transition hover:bg-white/[0.06]"
+              >
+                <CircleDollarSign className="h-5 w-5 text-stone-400" />
+                <span className="text-sm text-white">Financeiro</span>
+              </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
     </AppShell>
   );
