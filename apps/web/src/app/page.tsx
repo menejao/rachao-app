@@ -3,6 +3,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
+import { JogoStatusBadge } from "@/components/ui/jogo-status-badge";
+import { MinhaPresencaCard } from "@/components/presencas/minha-presenca-card";
 import { DisbararButton } from "@/components/dashboard/disparar-button";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { getOrganizerAlerts } from "@/lib/dashboard-view";
@@ -26,21 +28,13 @@ export default async function HomePage() {
     ? { turmaId: nextJogo.turmaId, dataJogo: nextJogo.dataJogo, turmaNome: nextJogo.turmaNome }
     : null;
 
-  const statusLabel: Record<string, string> = {
-    RASCUNHO: "Rascunho",
-    CONFIRMACAO_ABERTA: "Lista aberta",
-    FECHADO: "Lista fechada",
-    TIMES_GERADOS: "Times sorteados",
-    FINALIZADO: "Finalizado",
-  };
-
-  const statusColor: Record<string, string> = {
-    RASCUNHO: "text-stone-400",
-    CONFIRMACAO_ABERTA: "text-emerald-400",
-    FECHADO: "text-yellow-400",
-    TIMES_GERADOS: "text-sky-400",
-    FINALIZADO: "text-stone-500",
-  };
+  // Find logged-in player's presença for next game (match by email)
+  const myJogador = data.jogadores.find((j) => j.email === session?.user.email);
+  const myPresenca =
+    nextJogo && myJogador
+      ? data.presencas.find((p) => p.jogadorId === myJogador.id && p.jogoId === nextJogo.id)
+      : null;
+  const canConfirm = nextJogo?.status === "CONFIRMACAO_ABERTA";
 
   return (
     <AppShell data={data} currentPath="/">
@@ -55,6 +49,15 @@ export default async function HomePage() {
       </div>
 
       <div className="space-y-4">
+        {/* Minha presença — ação principal do jogador */}
+        {nextJogo && myPresenca && (
+          <MinhaPresencaCard
+            presencaId={myPresenca.id}
+            resposta={myPresenca.resposta}
+            readonly={!canConfirm}
+          />
+        )}
+
         {/* Próximo jogo */}
         {nextJogo ? (
           <Card>
@@ -68,11 +71,11 @@ export default async function HomePage() {
                     {formatDate(nextJogo.dataJogo)}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full border border-white/10 px-3 py-1 text-[11px] font-medium ${statusColor[nextJogo.status] ?? "text-stone-400"}`}
-                >
-                  {statusLabel[nextJogo.status] ?? nextJogo.status}
-                </span>
+                <JogoStatusBadge
+                  status={nextJogo.status}
+                  confirmados={nextJogo.confirmados}
+                  size="md"
+                />
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-3">

@@ -1,33 +1,44 @@
-import { CalendarDays } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { auth } from "@/auth";
 import { EmptyState } from "@/components/common/empty-state";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { AppShell } from "@/components/layout/app-shell";
 import { MatchCard } from "@/components/matches/match-card";
 import { NovoJogoButton } from "@/components/jogos/novo-jogo-button";
-import { Card, CardContent } from "@/components/ui/card";
+import { JogoStatusBadge } from "@/components/ui/jogo-status-badge";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { splitMatches } from "@/lib/dashboard-view";
-import { formatDateTime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
 export default async function JogosPage() {
-  const data = await getDashboardData();
+  const [data, session] = await Promise.all([getDashboardData(), auth()]);
   const { upcoming, previous } = splitMatches(data);
+  const isAdmin = session?.user.role === "ADMIN";
 
   return (
     <AppShell data={data} currentPath="/jogos">
       <PageHeader
         eyebrow="Agenda"
         title="Jogos"
-        description="Proximos rachoes, historico recente e status de cada lista."
-        actions={<NovoJogoButton turmas={data.turmas} />}
+        description="Próximos rachões, histórico recente e status de cada lista."
+        actions={isAdmin ? <NovoJogoButton turmas={data.turmas} /> : undefined}
       />
 
       <div className="space-y-8">
         <section>
-          <SectionTitle title="Proximos jogos" description="Confirmacao aberta, lista fechada e sorteio." />
+          <SectionTitle title="Próximos jogos" description="Confirmação aberta, lista fechada e sorteio." />
           {upcoming.length === 0 ? (
-            <EmptyState icon={CalendarDays} title="Sem jogos futuros" description="Crie o proximo jogo para abrir confirmacao e organizar a rodada." />
+            <EmptyState
+              icon={CalendarDays}
+              title="Sem jogos futuros"
+              description={
+                isAdmin
+                  ? "Crie o próximo jogo para abrir confirmação e organizar a rodada."
+                  : "Aguardando o próximo jogo ser agendado."
+              }
+            />
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
               {upcoming.map((match) => (
@@ -37,28 +48,36 @@ export default async function JogosPage() {
           )}
         </section>
 
-        <section>
-          <SectionTitle title="Jogos anteriores" description="Historico simples para consulta do organizador." />
-          <div className="grid gap-4 lg:grid-cols-2">
-            {previous.map((match) => (
-              <Card key={match.id}>
-                <CardContent className="pt-5">
-                  <p className="font-semibold text-white">{match.turmaNome}</p>
-                  <p className="mt-1 text-sm text-stone-400">{formatDateTime(match.dataJogo)}</p>
-                  <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-stone-500">{match.status.replaceAll("_", " ")}</span>
-                    <span className="font-semibold text-white">{match.confirmados} confirmados</span>
+        {previous.length > 0 && (
+          <section>
+            <SectionTitle title="Jogos anteriores" description="Histórico para consulta." />
+            <div className="space-y-2">
+              {previous.map((match) => (
+                <Link
+                  key={match.id}
+                  href={`/jogos/${match.id}` as never}
+                  className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.05]"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.05]">
+                    <CalendarDays className="h-5 w-5 text-stone-500" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            {previous.length === 0 ? (
-              <Card>
-                <CardContent className="pt-5 text-sm text-stone-400">Nenhum jogo finalizado ainda.</CardContent>
-              </Card>
-            ) : null}
-          </div>
-        </section>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-white">{formatDate(match.dataJogo)}</p>
+                    <p className="text-[11px] text-stone-500">{match.turmaNome}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <div className="flex items-center gap-1 text-sm">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span className="font-semibold text-emerald-300">{match.confirmados}</span>
+                    </div>
+                    <JogoStatusBadge status={match.status} />
+                    <ArrowRight className="h-4 w-4 text-stone-600" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </AppShell>
   );
