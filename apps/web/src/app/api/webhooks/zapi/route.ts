@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, ignored: true, reason: "Payload inválido" });
     }
 
-    const data = parsed.data;
+    const data = parsed.data!;
 
     // Ignorar mensagens próprias e não-grupos
     if (data.fromMe || !data.isGroup) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const result = await handlePresenceWebhook({
       groupId: data.phone,
       fromPhone: data.participantPhone ?? "",
-      message,
+      message: message!,
     });
 
     return NextResponse.json(result);
