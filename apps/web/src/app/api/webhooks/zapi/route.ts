@@ -13,7 +13,8 @@ const zapiSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const raw: unknown = await req.json();
-    console.log("[ZAPI_WEBHOOK_RAW]", JSON.stringify(raw, null, 2));
+    console.dir(raw, { depth: null });
+    return Response.json(raw);
     const parsed = zapiSchema.safeParse(raw);
 
     if (!parsed.success) {
