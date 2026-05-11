@@ -2,7 +2,6 @@
 
 import type { TurmaSummary } from "@rachao/types";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 import { formatCurrency } from "@rachao/utils";
@@ -15,6 +14,8 @@ interface FormState {
   diaSemana: number;
   horario: string;
   mensalidade: number;
+  whatsappGroupId: string;
+  whatsappProvider: "zapi" | "evolution" | "mock";
 }
 
 function fromTurma(t: TurmaSummary): FormState {
@@ -24,11 +25,12 @@ function fromTurma(t: TurmaSummary): FormState {
     diaSemana: t.diaSemana,
     horario: t.horario,
     mensalidade: t.mensalidade,
+    whatsappGroupId: t.whatsappGroupId ?? "",
+    whatsappProvider: (t.whatsappProvider as FormState["whatsappProvider"]) ?? "zapi",
   };
 }
 
 export function TurmaSettingsForm({ turma }: { turma: TurmaSummary }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(fromTurma(turma));
   const [saving, setSaving] = useState(false);
@@ -58,11 +60,13 @@ export function TurmaSettingsForm({ turma }: { turma: TurmaSummary }) {
         diaSemana: Number(form.diaSemana),
         horario: form.horario,
         mensalidade: Number(form.mensalidade),
+        whatsappGroupId: form.whatsappGroupId.trim() || null,
+        whatsappProvider: form.whatsappGroupId.trim() ? form.whatsappProvider : null,
       });
       toast("Configuracoes salvas!");
       setDirty(false);
-      router.refresh();
     } catch (e) {
+      console.error("[turma-settings]", e);
       setError(e instanceof Error ? e.message : "Erro ao salvar configuracoes.");
     } finally {
       setSaving(false);
@@ -78,6 +82,8 @@ export function TurmaSettingsForm({ turma }: { turma: TurmaSummary }) {
   const inputClass =
     "w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-stone-500 focus:border-emerald-500/40 transition";
   const labelClass = "mb-1.5 block text-xs text-stone-400";
+
+  const groupIdConfigured = !!turma.whatsappGroupId;
 
   return (
     <div className="space-y-4">
@@ -134,6 +140,49 @@ export function TurmaSettingsForm({ turma }: { turma: TurmaSummary }) {
           className={inputClass}
         />
         <p className="mt-1 text-xs text-stone-500">Atual: {formatCurrency(turma.mensalidade)}</p>
+      </div>
+
+      {/* WhatsApp */}
+      <div className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-500">WhatsApp</p>
+          {groupIdConfigured && (
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+              Configurado
+            </span>
+          )}
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Provider
+          </label>
+          <select
+            value={form.whatsappProvider}
+            onChange={(e) => field("whatsappProvider", e.target.value as FormState["whatsappProvider"])}
+            className={inputClass}
+          >
+            <option value="zapi" className="bg-[#0a1628]">Z-API</option>
+            <option value="evolution" className="bg-[#0a1628]">Evolution API</option>
+            <option value="mock" className="bg-[#0a1628]">Mock (testes)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Group ID do WhatsApp
+            <span className="ml-1 text-stone-600">(JID do grupo, ex: 5511XXXXX-XXXXXXXXXX@g.us)</span>
+          </label>
+          <input
+            value={form.whatsappGroupId}
+            onChange={(e) => field("whatsappGroupId", e.target.value)}
+            placeholder="5511999990001-1609946707@g.us"
+            className={inputClass}
+          />
+          <p className="mt-1 text-[11px] text-stone-600">
+            No Z-API: painel da instância → Grupos → copie o ID do grupo.
+          </p>
+        </div>
       </div>
 
       {error && <p className="text-sm text-rose-400">{error}</p>}

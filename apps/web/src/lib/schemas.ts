@@ -46,7 +46,8 @@ export const UpdateTurmaSchema = z.object({
   horario: z.string().min(1).optional(),
   mensalidade: z.number().nonnegative().optional(),
   status: z.enum(["ATIVA", "INATIVA"]).optional(),
-  whatsappGroupLink: z.string().url().nullable().optional(),
+  whatsappGroupId: z.string().nullable().optional(),
+  whatsappProvider: z.enum(["zapi", "evolution", "mock"]).nullable().optional(),
 });
 
 export const UpdatePresencaSchema = z.object({

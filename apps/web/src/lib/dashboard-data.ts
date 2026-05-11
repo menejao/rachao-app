@@ -67,6 +67,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     horario: t.horario,
     mensalidade: Number(t.mensalidade),
     status: t.status,
+    whatsappGroupId: t.whatsappGroupId ?? null,
+    whatsappProvider: t.whatsappProvider ?? null,
     totalJogadores: jogadoresByTurma.get(t.id) ?? 0,
   }));
 

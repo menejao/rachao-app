@@ -25,6 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.horario !== undefined && { horario: body.horario }),
           ...(body.mensalidade !== undefined && { mensalidade: body.mensalidade }),
           ...(body.status !== undefined && { status: body.status }),
+          ...(body.whatsappGroupId !== undefined && { whatsappGroupId: body.whatsappGroupId }),
+          ...(body.whatsappProvider !== undefined && { whatsappProvider: body.whatsappProvider }),
         },
       });
       return NextResponse.json({
@@ -35,6 +37,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         horario: turma.horario,
         mensalidade: Number(turma.mensalidade),
         status: turma.status,
+        whatsappGroupId: turma.whatsappGroupId,
+        whatsappProvider: turma.whatsappProvider,
       });
     }
 

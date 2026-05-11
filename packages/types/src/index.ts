@@ -26,6 +26,8 @@ export interface TurmaSummary {
   horario: string;
   mensalidade: number;
   status: TurmaStatus;
+  whatsappGroupId?: string | null;
+  whatsappProvider?: string | null;
   createdAt?: string;
   updatedAt?: string;
   totalJogadores?: number;
