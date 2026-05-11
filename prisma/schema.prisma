@@ -283,3 +283,11 @@ model EventoLog {
   @@index([turmaId, createdAt])
   @@index([jogoId, createdAt])
 }
+
+model Job {
+  id             String    @id @default(cuid())
+  nome           String    @unique
+  ultimaExecucao DateTime?
+  status         String?
+  updatedAt      DateTime  @updatedAt
+}

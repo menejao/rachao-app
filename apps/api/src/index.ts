@@ -10,6 +10,7 @@ import {
   updatePagamentoSchema,
 } from "./contracts/pagamento";
 import { dispatchPresenceSchema, listLogsQuerySchema, updatePresencaSchema, webhookMessageSchema } from "./contracts/presenca";
+import { adaptEvolutionWebhook, adaptZApiWebhook } from "./modules/webhooks/webhook.adapters";
 import { runJobSchema } from "./contracts/jobs";
 import { generateTeamsSchema } from "./contracts/times";
 import { createTurmaSchema, listTurmasQuerySchema, updateTurmaSchema } from "./contracts/turma";
@@ -283,6 +284,28 @@ const server = createServer(async (req, res) => {
         await parseJsonBody(req)
       );
       json(res, 200, await presencaService.receivePresenceWebhook(body));
+      return;
+    }
+
+    if (method === "POST" && path === "/api/webhooks/zapi") {
+      const raw = await parseJsonBody(req);
+      const adapted = adaptZApiWebhook(raw);
+      if (!adapted) {
+        json(res, 200, { ok: true, ignored: true, reason: "Payload ignorado pelo adapter Z-API" });
+        return;
+      }
+      json(res, 200, await presencaService.receivePresenceWebhook(adapted));
+      return;
+    }
+
+    if (method === "POST" && path === "/api/webhooks/evolution") {
+      const raw = await parseJsonBody(req);
+      const adapted = adaptEvolutionWebhook(raw);
+      if (!adapted) {
+        json(res, 200, { ok: true, ignored: true, reason: "Payload ignorado pelo adapter Evolution" });
+        return;
+      }
+      json(res, 200, await presencaService.receivePresenceWebhook(adapted));
       return;
     }
 
