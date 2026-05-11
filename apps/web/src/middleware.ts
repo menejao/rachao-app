@@ -3,7 +3,7 @@ import { authConfig } from "@/auth.config";
 
 const { auth } = NextAuth(authConfig);
 
-const PUBLIC_PATHS = ["/login", "/signup", "/convite"];
+const PUBLIC_PATHS = ["/login", "/signup", "/convite", "/api/webhooks"];
 
 export default auth((req) => {
   const isAuth = !!req.auth;
