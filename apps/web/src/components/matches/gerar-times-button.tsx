@@ -17,6 +17,7 @@ export function GerarTimesButton({ jogoId }: { jogoId: string }) {
       toast("Times gerados com sucesso!");
       router.refresh();
     } catch (e) {
+      console.error("[gerar-times]", e);
       toast(e instanceof Error ? e.message : "Erro ao gerar times.", "error");
     } finally {
       setLoading(false);

@@ -7,12 +7,10 @@ import {
   Settings,
   ShieldCheck,
   Target,
-  User,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LogoutButton } from "./logout-button";
 import type { UserRole } from "@/lib/permissions";
 
 interface NavItem {
@@ -49,15 +47,6 @@ export function Sidebar({
 }) {
   const role = user?.role ?? "PLAYER";
   const visibleItems = items.filter((i) => !i.adminOnly || role === "ADMIN");
-
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join("")
-        .toUpperCase()
-    : "?";
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[92px] shrink-0 border-r border-white/8 bg-black/30 px-4 py-6 backdrop-blur xl:block xl:w-[270px]">
@@ -109,45 +98,6 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="mt-4 space-y-2">
-          <Link
-            href={"/perfil" as never}
-            className="hidden xl:flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.04] p-3 transition hover:bg-white/[0.07]"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-300 to-amber-500 text-xs font-black text-black">
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-white">
-                {user?.name ?? "Usuário"}
-              </p>
-              <span
-                className={cn(
-                  "mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                  role === "ADMIN"
-                    ? "bg-emerald-500/15 text-emerald-400"
-                    : "bg-sky-500/15 text-sky-400"
-                )}
-              >
-                {role === "ADMIN" ? "Admin" : "Jogador"}
-              </span>
-            </div>
-            <User className="h-4 w-4 shrink-0 text-stone-500" />
-          </Link>
-
-          <div className="hidden xl:block">
-            <LogoutButton />
-          </div>
-
-          <div className="xl:hidden flex flex-col items-center gap-2">
-            <Link
-              href={"/perfil" as never}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-300 to-amber-500 text-xs font-black text-black"
-            >
-              {initials}
-            </Link>
-          </div>
-        </div>
       </div>
     </aside>
   );

@@ -2,8 +2,7 @@
 
 import type { JogadorSummary, TurmaSummary, Posicao } from "@rachao/types";
 import { Pencil, Search, Trash2, Users } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
@@ -39,8 +38,8 @@ export function JogadoresClient({
   turmas: TurmaSummary[];
   turmaNameMap: Record<string, string>;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
+  const [players, setPlayers] = useState(initialPlayers);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
@@ -50,10 +49,13 @@ export function JogadoresClient({
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const filtered = initialPlayers.filter((p) => {
+  // sync when server re-renders (router.refresh)
+  useEffect(() => { setPlayers(initialPlayers); }, [initialPlayers]);
+
+  const filtered = players.filter((p) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return p.nome.toLowerCase().includes(q) || p.telefone.includes(search);
+    return p.nome.toLowerCase().includes(q) || (p.telefone ?? "").includes(search);
   });
   const visible = filtered.slice(0, page * PAGE_SIZE);
   const hasMore = visible.length < filtered.length;
@@ -68,7 +70,7 @@ export function JogadoresClient({
     setForm({
       turmaId: player.turmaId,
       nome: player.nome,
-      telefone: player.telefone,
+      telefone: player.telefone ?? "",
       email: player.email ?? "",
       posicao: player.posicao,
       nivel: player.nivel,
@@ -85,7 +87,7 @@ export function JogadoresClient({
     setSaving(true);
     setFormError(null);
     try {
-      await api.post("/api/jogadores", {
+      const created = await api.post<JogadorSummary>("/api/jogadores", {
         turmaId: form.turmaId,
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
@@ -93,10 +95,11 @@ export function JogadoresClient({
         posicao: form.posicao,
         nivel: Number(form.nivel),
       });
+      setPlayers((prev) => [...prev, created].sort((a, b) => a.nome.localeCompare(b.nome)));
       toast("Jogador adicionado com sucesso!");
-      router.refresh();
       setShowAdd(false);
     } catch (e) {
+      console.error("[jogadores] create error:", e);
       setFormError(e instanceof Error ? e.message : "Erro ao criar jogador.");
     } finally {
       setSaving(false);
@@ -111,17 +114,20 @@ export function JogadoresClient({
     setSaving(true);
     setFormError(null);
     try {
-      await api.patch(`/api/jogadores/${editPlayer.id}`, {
+      const updated = await api.patch<JogadorSummary>(`/api/jogadores/${editPlayer.id}`, {
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
         email: form.email.trim() || undefined,
         posicao: form.posicao,
         nivel: Number(form.nivel),
       });
+      setPlayers((prev) =>
+        prev.map((p) => (p.id === editPlayer.id ? { ...p, ...updated } : p))
+      );
       toast("Jogador atualizado com sucesso!");
-      router.refresh();
       setEditPlayer(null);
     } catch (e) {
+      console.error("[jogadores] update error:", e);
       setFormError(e instanceof Error ? e.message : "Erro ao atualizar jogador.");
     } finally {
       setSaving(false);
@@ -134,10 +140,11 @@ export function JogadoresClient({
     setFormError(null);
     try {
       await api.delete(`/api/jogadores/${confirmDeleteId}`);
+      setPlayers((prev) => prev.filter((p) => p.id !== confirmDeleteId));
       toast("Jogador removido.");
-      router.refresh();
       setConfirmDeleteId(null);
     } catch (e) {
+      console.error("[jogadores] delete error:", e);
       setFormError(e instanceof Error ? e.message : "Erro ao excluir.");
     } finally {
       setSaving(false);

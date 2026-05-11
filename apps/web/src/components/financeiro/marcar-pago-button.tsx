@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/toast";
 
-export function MarcarPagoButton({ paymentId, canEdit }: { paymentId: string; canEdit: boolean }) {
-  const router = useRouter();
+interface Props {
+  paymentId: string;
+  canEdit: boolean;
+  onPaid?: (id: string) => void;
+}
+
+export function MarcarPagoButton({ paymentId, canEdit, onPaid }: Props) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -17,8 +21,9 @@ export function MarcarPagoButton({ paymentId, canEdit }: { paymentId: string; ca
     try {
       await api.patch(`/api/pagamentos/${paymentId}/pagar`, {});
       toast("Pagamento marcado como pago.");
-      router.refresh();
+      onPaid?.(paymentId);
     } catch (e) {
+      console.error("[marcar-pago]", e);
       toast(e instanceof Error ? e.message : "Erro ao marcar como pago.", "error");
     } finally {
       setLoading(false);

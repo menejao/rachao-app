@@ -1,6 +1,6 @@
-import { Bell, ChevronDown, User } from "lucide-react";
-import Link from "next/link";
+import { Bell, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AvatarDropdown } from "@/components/layout/avatar-dropdown";
 import type { UserRole } from "@/lib/permissions";
 
 interface UserInfo {
@@ -56,20 +56,11 @@ export function Topbar({
             <Bell className="h-4 w-4" />
           </button>
 
-          <Link
-            href={"/perfil" as never}
-            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 transition hover:bg-white/[0.07]"
-          >
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-white">{user?.name ?? "Usuário"}</p>
-              <p className="text-xs text-stone-500">
-                {user?.role === "ADMIN" ? "Organizador" : "Jogador"}
-              </p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-500 text-sm font-black text-black">
-              {initials}
-            </div>
-          </Link>
+          <AvatarDropdown
+            initials={initials}
+            name={user?.name ?? "Usuário"}
+            role={user?.role ?? "PLAYER"}
+          />
         </div>
 
         <div className="xl:hidden">

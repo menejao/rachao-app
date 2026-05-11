@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Download } from "lucide-react";
 import type { PagamentoSummary, JogadorSummary } from "@rachao/types";
 import { PaymentStatusBadge } from "@/components/common/payment-status-badge";
@@ -44,27 +44,39 @@ interface Props {
 }
 
 export function FinanceiroHistoricoClient({ pagamentos, jogadores, turmaId, canEdit }: Props) {
+  const [payments, setPayments] = useState(pagamentos);
+
+  // sync when server-side data changes (e.g. router.refresh)
+  useEffect(() => { setPayments(pagamentos); }, [pagamentos]);
+
   const jogadorMap = useMemo(() => new Map(jogadores.map((j) => [j.id, j])), [jogadores]);
 
   const monthKeys = useMemo(() => {
     const keys = new Set<string>();
-    for (const p of pagamentos) {
+    for (const p of payments) {
       keys.add(`${p.referenciaAno}-${String(p.referenciaMes).padStart(2, "0")}`);
     }
     return ["TODOS", ...[...keys].sort((a, b) => b.localeCompare(a))];
-  }, [pagamentos]);
+  }, [payments]);
 
   const [selectedMonth, setSelectedMonth] = useState(monthKeys[1] ?? "TODOS");
   const [selectedStatus, setSelectedStatus] = useState<typeof STATUS_OPTIONS[number]>("TODOS");
 
+  // reset month selection when months available change
+  useEffect(() => {
+    if (!monthKeys.includes(selectedMonth)) {
+      setSelectedMonth(monthKeys[1] ?? "TODOS");
+    }
+  }, [monthKeys, selectedMonth]);
+
   const filtered = useMemo(() => {
-    return pagamentos.filter((p) => {
+    return payments.filter((p) => {
       const key = `${p.referenciaAno}-${String(p.referenciaMes).padStart(2, "0")}`;
       if (selectedMonth !== "TODOS" && key !== selectedMonth) return false;
       if (selectedStatus !== "TODOS" && p.status !== selectedStatus) return false;
       return true;
     });
-  }, [pagamentos, selectedMonth, selectedStatus]);
+  }, [payments, selectedMonth, selectedStatus]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, PagamentoSummary[]>();
@@ -84,6 +96,16 @@ export function FinanceiroHistoricoClient({ pagamentos, jogadores, turmaId, canE
   const [ano, mesStr] = selectedMonth !== "TODOS" ? selectedMonth.split("-") : [null, null];
   const mesFiltrado = mesStr ? parseInt(mesStr) : null;
   const anoFiltrado = ano ? parseInt(ano) : null;
+
+  function handlePaid(id: string) {
+    setPayments((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: "PAGO" as const, pagoEm: new Date().toISOString() }
+          : p
+      )
+    );
+  }
 
   return (
     <Card>
@@ -150,19 +172,19 @@ export function FinanceiroHistoricoClient({ pagamentos, jogadores, turmaId, canE
         )}
 
         <div className="space-y-6">
-          {grouped.map(([key, payments]) => {
+          {grouped.map(([key, groupPayments]) => {
             const [a, m] = key.split("-");
             const mes = parseInt(m ?? "1");
             const anoNum = parseInt(a ?? "2025");
-            const pagos = payments.filter((p) => p.status === "PAGO").length;
+            const pagos = groupPayments.filter((p) => p.status === "PAGO").length;
             return (
               <div key={key}>
                 <div className="mb-3 flex items-center gap-3">
                   <span className="text-sm font-semibold text-white">{mesLabel(mes, anoNum)}</span>
-                  <span className="text-[11px] text-stone-500">{pagos}/{payments.length} pagos</span>
+                  <span className="text-[11px] text-stone-500">{pagos}/{groupPayments.length} pagos</span>
                 </div>
                 <div className="space-y-2">
-                  {payments.map((payment) => {
+                  {groupPayments.map((payment) => {
                     const jogador = jogadorMap.get(payment.jogadorId);
                     return (
                       <div
@@ -188,7 +210,11 @@ export function FinanceiroHistoricoClient({ pagamentos, jogadores, turmaId, canE
                                   ano={payment.referenciaAno}
                                 />
                               )}
-                              <MarcarPagoButton paymentId={payment.id} canEdit={canEdit} />
+                              <MarcarPagoButton
+                                paymentId={payment.id}
+                                canEdit={canEdit}
+                                onPaid={handlePaid}
+                              />
                             </>
                           )}
                         </div>
