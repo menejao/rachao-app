@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Target } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { PageHeader } from "@/components/common/page-header";

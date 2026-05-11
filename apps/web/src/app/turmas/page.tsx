@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { auth } from "@/auth";
 import { Layers3, MapPin, Users } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";

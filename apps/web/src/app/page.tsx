@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { AlertTriangle, ArrowRight, CalendarDays, CircleDollarSign, Users } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/auth";

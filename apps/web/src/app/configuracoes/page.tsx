@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { CheckCircle2, Settings, XCircle } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";

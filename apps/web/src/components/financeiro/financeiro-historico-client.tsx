@@ -120,7 +120,7 @@ export function FinanceiroHistoricoClient({ pagamentos, jogadores, turmaId, canE
             ))}
           </select>
 
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {STATUS_OPTIONS.map((s) => (
               <button
                 key={s}

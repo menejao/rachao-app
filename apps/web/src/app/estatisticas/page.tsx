@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { BarChart3, Goal, Medal, Star } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";

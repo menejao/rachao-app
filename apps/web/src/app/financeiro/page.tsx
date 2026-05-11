@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { CircleDollarSign, CreditCard, Eye, Siren, TrendingUp } from "lucide-react";
 import { auth } from "@/auth";
 import { PageHeader } from "@/components/common/page-header";
