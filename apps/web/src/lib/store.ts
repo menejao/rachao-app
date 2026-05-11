@@ -67,7 +67,7 @@ interface DemoTeam {
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 const store: {
-  turmas: Array<TurmaSummary & { whatsappGroupId?: string }>;
+  turmas: Array<TurmaSummary>;
   jogadores: JogadorSummary[];
   jogos: DemoGame[];
   presencas: DemoPresence[];
