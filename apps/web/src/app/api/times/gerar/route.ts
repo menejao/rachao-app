@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { generateTimes } from "@/lib/store";
 import { generateBalancedTeams } from "@rachao/utils";
+import { z } from "zod";
+
+const GerarTimesSchema = z.object({
+  jogoId: z.string().min(1, "jogoId obrigatório"),
+  numTimes: z.number().int().min(2).max(6).optional(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,14 +15,15 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
-    const body = await req.json() as { jogoId: string };
-    if (!body.jogoId) return NextResponse.json({ error: "jogoId obrigatório" }, { status: 400 });
+    const parsed = GerarTimesSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
 
       const confirmed = await db.presenca.findMany({
-        where: { jogoId: body.jogoId, resposta: "SIM" },
+        where: { jogoId: body.jogoId, resposta: "SIM", posicaoFila: null },
         include: { jogador: true },
       });
 
@@ -31,7 +38,7 @@ export async function POST(req: NextRequest) {
         nivel: p.jogador.nivel,
       }));
 
-      const generated = generateBalancedTeams(players);
+      const generated = generateBalancedTeams(players, body.numTimes);
 
       await db.time.deleteMany({ where: { jogoId: body.jogoId } });
       await db.presenca.updateMany({ where: { jogoId: body.jogoId }, data: { timeId: null } });

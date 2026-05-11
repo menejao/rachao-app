@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createInvite } from "@/lib/store";
+import { CreateInviteSchema } from "@/lib/schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +11,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
     }
 
-    const body = await req.json() as { role?: "ADMIN" | "PLAYER"; turmaId?: string };
+    const parsed = CreateInviteSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
     const turmaId = body.turmaId || session.user.activeTeamId;
     const role = body.role ?? "PLAYER";
 

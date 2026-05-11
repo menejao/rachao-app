@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { UpdateJogoSchema } from "@/lib/schemas";
+import type { JogoStatus } from "@prisma/client";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -8,15 +10,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
     const { id } = await params;
-    const body = await req.json() as { status?: string; observacoes?: string };
+    const parsed = UpdateJogoSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
       const jogo = await db.jogo.update({
         where: { id },
         data: {
-          ...(body.status !== undefined && { status: body.status as never }),
+          ...(body.status !== undefined && { status: body.status as JogoStatus }),
           ...(body.observacoes !== undefined && { observacoes: body.observacoes }),
+          ...(body.limitJogadores !== undefined && { limitJogadores: body.limitJogadores }),
         },
       });
       return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createTurma } from "@/lib/store";
+import { CreateTurmaSchema } from "@/lib/schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,8 +9,9 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
-    const body = await req.json() as { nome: string; local?: string; diaSemana: number; horario: string; mensalidade: number };
-    if (!body.nome) return NextResponse.json({ error: "nome obrigatório" }, { status: 400 });
+    const parsed = CreateTurmaSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");

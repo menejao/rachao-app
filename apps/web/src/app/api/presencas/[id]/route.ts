@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { RespostaPresenca } from "@rachao/types";
 import { auth } from "@/auth";
 import { updatePresenca } from "@/lib/store";
+import { sendNotification, isWhatsAppConfigured } from "@/lib/notifications/service";
+import { UpdatePresencaSchema } from "@/lib/schemas";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,8 +10,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
     const { id } = await params;
-    const body = await req.json() as { resposta: RespostaPresenca };
-    if (!body.resposta) return NextResponse.json({ error: "resposta obrigatória" }, { status: 400 });
+    const parsed = UpdatePresencaSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
@@ -56,6 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const primeiroDaFila = await db.presenca.findFirst({
           where: { jogoId: presenca.jogoId, posicaoFila: { gt: 0 } },
           orderBy: { posicaoFila: "asc" },
+          include: { jogador: true },
         });
         if (primeiroDaFila) {
           await db.presenca.update({ where: { id: primeiroDaFila.id }, data: { posicaoFila: null } });
@@ -63,6 +66,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             where: { jogoId: presenca.jogoId, posicaoFila: { gt: 1 } },
             data: { posicaoFila: { decrement: 1 } },
           });
+
+          if (isWhatsAppConfigured() && jogo) {
+            const turma = await db.turma.findUnique({ where: { id: jogo.turmaId } });
+            if (turma) {
+              const dataStr = jogo.dataJogo.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+              const horaStr = jogo.dataJogo.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              // fire-and-forget — don't block response
+              void sendNotification(
+                "lista_espera_promovida",
+                primeiroDaFila.jogador.telefone,
+                {
+                  nome: primeiroDaFila.jogador.nome.split(" ")[0] ?? primeiroDaFila.jogador.nome,
+                  equipe: turma.nome,
+                  data: dataStr,
+                  hora: horaStr,
+                },
+                { turmaId: jogo.turmaId, logToDb: true }
+              );
+            }
+          }
         }
         return NextResponse.json({ ok: true, promoted: primeiroDaFila?.id ?? null });
       }

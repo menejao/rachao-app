@@ -5,8 +5,10 @@ import { AppShell } from "@/components/layout/app-shell";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { PageHeader } from "@/components/common/page-header";
 import { ProfileForm } from "@/components/perfil/profile-form";
+import { NotificationPrefsForm } from "@/components/perfil/notification-prefs-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionTitle } from "@/components/common/section-title";
+import { isWhatsAppConfigured } from "@/lib/notifications/service";
 
 const POSICAO_LABEL: Record<string, string> = {
   GOLEIRO: "Goleiro",
@@ -18,6 +20,13 @@ const POSICAO_LABEL: Record<string, string> = {
 
 const NIVEL_STARS = (n: number) => "★".repeat(n) + "☆".repeat(Math.max(0, 5 - n));
 
+const DEFAULT_PREFS = {
+  whatsappEnabled: true,
+  paymentReminderEnabled: true,
+  gameReminderEnabled: true,
+  presenceReminderEnabled: true,
+};
+
 export default async function PerfilPage() {
   const session = await auth();
   if (!session) redirect("/login" as never);
@@ -25,6 +34,21 @@ export default async function PerfilPage() {
   const user = findUserById(session.user.id);
   const memberships = getUserMemberships(session.user.id);
   const data = await getDashboardData();
+
+  let notifPrefs = DEFAULT_PREFS;
+  if (process.env.DATABASE_URL) {
+    const { db } = await import("@/lib/prisma");
+    const dbPrefs = await db.userNotificationPreference.findUnique({ where: { userId: session.user.id } });
+    if (dbPrefs) {
+      notifPrefs = {
+        whatsappEnabled: dbPrefs.whatsappEnabled,
+        paymentReminderEnabled: dbPrefs.paymentReminderEnabled,
+        gameReminderEnabled: dbPrefs.gameReminderEnabled,
+        presenceReminderEnabled: dbPrefs.presenceReminderEnabled,
+      };
+    }
+  }
+  const waConfigured = isWhatsAppConfigured();
 
   const myJogador = data.jogadores.find((j) => j.email === session.user.email);
 
@@ -89,38 +113,49 @@ export default async function PerfilPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <SectionTitle title="Suas turmas" description="Turmas que você participa." />
-              <div className="mt-4 space-y-3">
-                {memberships.map((m) => (
-                  <div
-                    key={m.turmaId}
-                    className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-white">{m.turmaNome}</p>
-                      <p className="text-xs text-stone-500">
-                        {m.turmaId === session.user.activeTeamId ? "Ativa" : ""}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        m.role === "ADMIN"
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-sky-500/10 text-sky-400"
-                      }`}
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="pt-6">
+                <SectionTitle title="Suas turmas" description="Turmas que você participa." />
+                <div className="mt-4 space-y-3">
+                  {memberships.map((m) => (
+                    <div
+                      key={m.turmaId}
+                      className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3"
                     >
-                      {m.role === "ADMIN" ? "Organizador" : "Jogador"}
-                    </span>
-                  </div>
-                ))}
-                {memberships.length === 0 && (
-                  <p className="py-4 text-center text-sm text-stone-500">Sem turmas vinculadas.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                      <div>
+                        <p className="text-sm font-medium text-white">{m.turmaNome}</p>
+                        <p className="text-xs text-stone-500">
+                          {m.turmaId === session.user.activeTeamId ? "Ativa" : ""}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          m.role === "ADMIN"
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : "bg-sky-500/10 text-sky-400"
+                        }`}
+                      >
+                        {m.role === "ADMIN" ? "Organizador" : "Jogador"}
+                      </span>
+                    </div>
+                  ))}
+                  {memberships.length === 0 && (
+                    <p className="py-4 text-center text-sm text-stone-500">Sem turmas vinculadas.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {waConfigured && (
+              <Card>
+                <CardContent className="pt-6">
+                  <SectionTitle title="Notificações" description="Controle o que você recebe via WhatsApp." />
+                  <NotificationPrefsForm initial={notifPrefs} />
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </AppShell>

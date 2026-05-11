@@ -15,6 +15,7 @@ import { PlayerCard } from "@/components/players/player-card";
 import { Table, TableCell, TableHead, TableRow } from "@/components/ui/table";
 
 const POSICOES: Posicao[] = ["GOLEIRO", "FIXO", "ALA", "PIVO", "CORINGA"];
+const PAGE_SIZE = 20;
 
 interface FormData {
   turmaId: string;
@@ -41,6 +42,7 @@ export function JogadoresClient({
   const router = useRouter();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editPlayer, setEditPlayer] = useState<JogadorSummary | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -53,6 +55,8 @@ export function JogadoresClient({
     const q = search.toLowerCase();
     return p.nome.toLowerCase().includes(q) || p.telefone.includes(search);
   });
+  const visible = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = visible.length < filtered.length;
 
   function openAdd() {
     setForm(emptyForm(turmas[0]?.id ?? ""));
@@ -154,7 +158,7 @@ export function JogadoresClient({
                 className="w-full bg-transparent text-sm text-white outline-none placeholder:text-stone-500"
                 placeholder="Buscar por nome ou telefone"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
             </div>
             <button
@@ -183,80 +187,90 @@ export function JogadoresClient({
             }
           />
         ) : (
-          <ResponsiveDataView
-            desktop={
-              <div className="overflow-x-auto">
-                <Table>
-                  <thead>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Turma</TableHead>
-                      <TableHead>Posicao</TableHead>
-                      <TableHead className="text-right">Nivel</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>{null}</TableHead>
-                    </TableRow>
-                  </thead>
-                  <tbody>
-                    {filtered.map((player) => (
-                      <TableRow key={player.id}>
-                        <TableCell className="font-medium text-white">{player.nome}</TableCell>
-                        <TableCell>{turmaNameMap[player.turmaId] ?? "-"}</TableCell>
-                        <TableCell>{player.posicao}</TableCell>
-                        <TableCell className="text-right font-black text-white">{player.nivel}</TableCell>
-                        <TableCell>{player.ativo ? "Ativo" : "Inativo"}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openEdit(player)}
-                              className="rounded-xl p-1.5 text-stone-500 hover:bg-white/10 hover:text-white"
-                              title="Editar"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => { setFormError(null); setConfirmDeleteId(player.id); }}
-                              className="rounded-xl p-1.5 text-stone-500 hover:bg-rose-500/10 hover:text-rose-400"
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </TableCell>
+          <>
+            <ResponsiveDataView
+              desktop={
+                <div className="overflow-x-auto">
+                  <Table>
+                    <thead>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Turma</TableHead>
+                        <TableHead>Posicao</TableHead>
+                        <TableHead className="text-right">Nivel</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>{null}</TableHead>
                       </TableRow>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            }
-            mobile={
-              <div className="space-y-4">
-                {filtered.map((player) => (
-                  <div key={player.id}>
-                    <PlayerCard
-                      player={player}
-                      turmaNome={turmaNameMap[player.turmaId] ?? "-"}
-                      statusLabel={player.ativo ? "Ativo" : "Inativo"}
-                    />
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={() => openEdit(player)}
-                        className="flex-1 rounded-2xl border border-white/10 py-2 text-sm text-stone-300"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => { setFormError(null); setConfirmDeleteId(player.id); }}
-                        className="flex-1 rounded-2xl border border-rose-400/20 py-2 text-sm text-rose-300"
-                      >
-                        Excluir
-                      </button>
+                    </thead>
+                    <tbody>
+                      {visible.map((player) => (
+                        <TableRow key={player.id}>
+                          <TableCell className="font-medium text-white">{player.nome}</TableCell>
+                          <TableCell>{turmaNameMap[player.turmaId] ?? "-"}</TableCell>
+                          <TableCell>{player.posicao}</TableCell>
+                          <TableCell className="text-right font-black text-white">{player.nivel}</TableCell>
+                          <TableCell>{player.ativo ? "Ativo" : "Inativo"}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => openEdit(player)}
+                                className="rounded-xl p-1.5 text-stone-500 hover:bg-white/10 hover:text-white"
+                                title="Editar"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => { setFormError(null); setConfirmDeleteId(player.id); }}
+                                className="rounded-xl p-1.5 text-stone-500 hover:bg-rose-500/10 hover:text-rose-400"
+                                title="Excluir"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              }
+              mobile={
+                <div className="space-y-4">
+                  {visible.map((player) => (
+                    <div key={player.id}>
+                      <PlayerCard
+                        player={player}
+                        turmaNome={turmaNameMap[player.turmaId] ?? "-"}
+                        statusLabel={player.ativo ? "Ativo" : "Inativo"}
+                      />
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={() => openEdit(player)}
+                          className="flex-1 rounded-2xl border border-white/10 py-2 text-sm text-stone-300"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => { setFormError(null); setConfirmDeleteId(player.id); }}
+                          className="flex-1 rounded-2xl border border-rose-400/20 py-2 text-sm text-rose-300"
+                        >
+                          Excluir
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            }
-          />
+                  ))}
+                </div>
+              }
+            />
+            {hasMore && (
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="mt-4 w-full rounded-2xl border border-white/10 py-3 text-sm text-stone-400 transition hover:border-white/20 hover:text-white"
+              >
+                Ver mais ({filtered.length - visible.length} restantes)
+              </button>
+            )}
+          </>
         )}
       </div>
 

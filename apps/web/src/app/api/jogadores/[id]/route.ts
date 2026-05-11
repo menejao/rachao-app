@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { updateJogador, deleteJogador } from "@/lib/store";
-import type { Posicao } from "@prisma/client";
+import { UpdateJogadorSchema } from "@/lib/schemas";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -10,19 +10,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
     const { id } = await params;
-    const body = await req.json() as Record<string, unknown>;
+    const parsed = UpdateJogadorSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
       const jogador = await db.jogador.update({
         where: { id },
         data: {
-          ...(body.nome !== undefined && { nome: body.nome as string }),
-          ...(body.telefone !== undefined && { telefone: body.telefone as string }),
-          ...(body.email !== undefined && { email: body.email as string | null }),
-          ...(body.posicao !== undefined && { posicao: body.posicao as Posicao }),
-          ...(body.nivel !== undefined && { nivel: body.nivel as number }),
-          ...(body.ativo !== undefined && { ativo: body.ativo as boolean }),
+          ...(body.nome !== undefined && { nome: body.nome }),
+          ...(body.telefone !== undefined && { telefone: body.telefone }),
+          ...(body.email !== undefined && { email: body.email }),
+          ...(body.posicao !== undefined && { posicao: body.posicao }),
+          ...(body.nivel !== undefined && { nivel: body.nivel }),
+          ...(body.ativo !== undefined && { ativo: body.ativo }),
         },
       });
       return NextResponse.json({
@@ -37,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       });
     }
 
-    const jogador = updateJogador(id, body as Parameters<typeof updateJogador>[1]);
+    const jogador = updateJogador(id, body);
     return NextResponse.json(jogador);
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });

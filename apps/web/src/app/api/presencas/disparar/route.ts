@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { dispararPresencas } from "@/lib/store";
+import { DispararPresencasSchema } from "@/lib/schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,8 +9,9 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
-    const body = await req.json() as { turmaId?: string; dataJogo: string };
-    if (!body.dataJogo) return NextResponse.json({ error: "dataJogo obrigatória" }, { status: 400 });
+    const parsed = DispararPresencasSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
 
     const turmaId = body.turmaId || session.user.activeTeamId;
 

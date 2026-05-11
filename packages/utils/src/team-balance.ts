@@ -20,8 +20,8 @@ interface WorkingTeam {
 }
 
 function inferTeamCount(playerCount: number) {
-  if (playerCount >= 18) return 3;
   if (playerCount >= 28) return 4;
+  if (playerCount >= 18) return 3;
   return 2;
 }
 

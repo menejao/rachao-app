@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createJogador } from "@/lib/store";
-import type { Posicao } from "@prisma/client";
+import { CreateJogadorSchema } from "@/lib/schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,10 +9,12 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
 
-    const body = await req.json() as { turmaId?: string; nome: string; telefone: string; email?: string; posicao: string; nivel: number };
+    const parsed = CreateJogadorSchema.safeParse(await req.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(", ") }, { status: 400 });
+    const body = parsed.data;
     const turmaId = body.turmaId || session.user.activeTeamId;
-    if (!turmaId || !body.nome || !body.telefone) {
-      return NextResponse.json({ error: "turmaId, nome e telefone são obrigatórios" }, { status: 400 });
+    if (!turmaId) {
+      return NextResponse.json({ error: "turmaId obrigatório" }, { status: 400 });
     }
 
     if (process.env.DATABASE_URL) {
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
           nome: body.nome,
           telefone: body.telefone,
           email: body.email ?? null,
-          posicao: body.posicao as Posicao,
+          posicao: body.posicao,
           nivel: body.nivel,
           ativo: true,
         },

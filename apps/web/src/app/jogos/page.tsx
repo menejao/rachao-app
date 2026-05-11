@@ -14,7 +14,8 @@ import { formatDate } from "@/lib/format";
 
 export default async function JogosPage() {
   const [data, session] = await Promise.all([getDashboardData(), auth()]);
-  const { upcoming, previous } = splitMatches(data);
+  const { upcoming, previous: allPrevious } = splitMatches(data);
+  const previous = allPrevious.slice(0, 15);
   const isAdmin = session?.user.role === "ADMIN";
 
   return (
@@ -50,7 +51,10 @@ export default async function JogosPage() {
 
         {previous.length > 0 && (
           <section>
-            <SectionTitle title="Jogos anteriores" description="Histórico para consulta." />
+            <SectionTitle
+              title="Jogos anteriores"
+              description={`Histórico para consulta.${allPrevious.length > 15 ? ` Mostrando 15 de ${allPrevious.length}.` : ""}`}
+            />
             <div className="space-y-2">
               {previous.map((match) => (
                 <Link

@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, CheckCircle2, Clock, Target, Users, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle2, Clock, Hourglass, Target, Users, XCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -8,6 +8,8 @@ import { JogoStatusBadge } from "@/components/ui/jogo-status-badge";
 import { MinhaPresencaCard } from "@/components/presencas/minha-presenca-card";
 import { GerarTimesButton } from "@/components/matches/gerar-times-button";
 import { JogoStatusButton } from "@/components/jogos/jogo-status-button";
+import { EnviarLembreteButton } from "@/components/jogos/enviar-lembrete-button";
+import { EnviarAvisoButton } from "@/components/jogos/enviar-aviso-button";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { formatDate } from "@/lib/format";
 
@@ -35,7 +37,10 @@ export default async function JogoDetailPage({
   const isAdmin = session?.user.role === "ADMIN";
 
   const presencas = data.presencas.filter((p) => p.jogoId === id);
-  const confirmados = presencas.filter((p) => p.resposta === "SIM");
+  const confirmados = presencas.filter((p) => p.resposta === "SIM" && !p.posicaoFila);
+  const naFila = presencas
+    .filter((p) => p.resposta === "SIM" && p.posicaoFila && p.posicaoFila > 0)
+    .sort((a, b) => (a.posicaoFila ?? 0) - (b.posicaoFila ?? 0));
   const pendentes = presencas.filter((p) => p.resposta === "PENDENTE");
   const recusados = presencas.filter((p) => p.resposta === "NAO");
   const times = data.timesGerados.filter((t) => t.jogoId === id);
@@ -92,11 +97,17 @@ export default async function JogoDetailPage({
               <p className="text-sm font-medium text-white">Lista de presença</p>
               <Users className="h-4 w-4 text-stone-500" />
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className={`mt-4 grid gap-3 ${naFila.length > 0 ? "grid-cols-4" : "grid-cols-3"}`}>
               <div className="rounded-2xl bg-emerald-500/10 p-3 text-center">
                 <p className="text-2xl font-black text-emerald-300">{confirmados.length}</p>
                 <p className="mt-0.5 text-[10px] text-stone-500">Confirmados</p>
               </div>
+              {naFila.length > 0 && (
+                <div className="rounded-2xl bg-orange-500/10 p-3 text-center">
+                  <p className="text-2xl font-black text-orange-300">{naFila.length}</p>
+                  <p className="mt-0.5 text-[10px] text-stone-500">Na fila</p>
+                </div>
+              )}
               <div className="rounded-2xl bg-yellow-500/10 p-3 text-center">
                 <p className="text-2xl font-black text-yellow-300">{pendentes.length}</p>
                 <p className="mt-0.5 text-[10px] text-stone-500">Pendentes</p>
@@ -119,6 +130,10 @@ export default async function JogoDetailPage({
                 {["CONFIRMACAO_ABERTA", "FECHADO", "TIMES_GERADOS"].includes(jogo.status) && (
                   <GerarTimesButton jogoId={id} />
                 )}
+                {jogo.status === "CONFIRMACAO_ABERTA" && (
+                  <EnviarLembreteButton jogoId={id} />
+                )}
+                <EnviarAvisoButton turmaId={jogo.turmaId} />
               </div>
             </CardContent>
           </Card>
@@ -193,6 +208,19 @@ export default async function JogoDetailPage({
                     )}
                   </div>
                 ))}
+
+                {naFila.length > 0 && (
+                  <div className="mt-2 border-t border-white/5 pt-2">
+                    <p className="px-3 pb-1 text-[10px] uppercase tracking-widest text-orange-400/70">Fila de espera</p>
+                    {naFila.map((p) => (
+                      <div key={p.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+                        <span className="w-4 text-center text-[11px] font-bold text-orange-500">{p.posicaoFila}</span>
+                        <Hourglass className="h-4 w-4 shrink-0 text-orange-400" />
+                        <span className="flex-1 text-sm text-orange-200/80">{p.jogadorNome}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {pendentes.length > 0 && (
                   <div className="mt-2 border-t border-white/5 pt-2">
