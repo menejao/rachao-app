@@ -56,7 +56,7 @@ export function PasskeyLoginButton({
         return;
       }
 
-      router.push(redirectTo === "/login" ? "/" : redirectTo);
+      router.push((redirectTo === "/login" ? "/" : redirectTo) as never);
       router.refresh();
     } catch (e: unknown) {
       const name = (e as Error)?.name;
