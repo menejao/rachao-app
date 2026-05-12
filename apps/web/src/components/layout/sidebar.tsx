@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Target,
   Users,
+  Volleyball,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const items: NavItem[] = [
   { href: "/jogos", label: "Jogos", icon: ClipboardList },
   { href: "/presencas", label: "Presenças", icon: ShieldCheck },
   { href: "/jogadores", label: "Jogadores", icon: Users, adminOnly: true },
+  { href: "/turmas", label: "Turmas", icon: Volleyball, adminOnly: true },
   { href: "/times", label: "Times", icon: Target },
   { href: "/financeiro", label: "Financeiro", icon: CircleDollarSign },
   { href: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
