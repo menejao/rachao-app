@@ -9,6 +9,7 @@ import type {
   TurmaSummary,
 } from "@rachao/types";
 import { computeDashboard } from "@/lib/store";
+import { generateActivationCode } from "@/lib/activation-code";
 
 export async function getDashboardData(): Promise<DashboardData> {
   if (!process.env.DATABASE_URL) {
@@ -69,8 +70,22 @@ export async function getDashboardData(): Promise<DashboardData> {
     status: t.status,
     whatsappGroupId: t.whatsappGroupId ?? null,
     whatsappProvider: t.whatsappProvider ?? null,
+    whatsappStatus: t.whatsappStatus ?? "NAO_CONECTADO",
+    whatsappActivationCode: t.whatsappActivationCode ?? null,
+    whatsappConnectedAt: t.whatsappConnectedAt?.toISOString() ?? null,
+    whatsappLastActivity: t.whatsappLastActivity?.toISOString() ?? null,
+    whatsappGroupName: t.whatsappGroupName ?? null,
     totalJogadores: jogadoresByTurma.get(t.id) ?? 0,
   }));
+
+  // Ensure all turmas have activation codes
+  for (let i = 0; i < turmas.length; i++) {
+    if (!turmas[i].whatsappActivationCode) {
+      const code = generateActivationCode();
+      await db.turma.update({ where: { id: turmas[i].id }, data: { whatsappActivationCode: code } }).catch(() => null);
+      turmasSummary[i].whatsappActivationCode = code;
+    }
+  }
 
   const jogosSummary: JogoSummary[] = jogos.map((j) => ({
     id: j.id,

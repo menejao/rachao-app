@@ -1,4 +1,5 @@
 export type TurmaStatus = "ATIVA" | "INATIVA";
+export type WhatsappConnectionStatus = "NAO_CONECTADO" | "AGUARDANDO" | "CONECTADO" | "ERRO";
 export type Posicao = "GOLEIRO" | "FIXO" | "ALA" | "PIVO" | "CORINGA";
 export type JogoStatus =
   | "RASCUNHO"
@@ -28,6 +29,11 @@ export interface TurmaSummary {
   status: TurmaStatus;
   whatsappGroupId?: string | null;
   whatsappProvider?: string | null;
+  whatsappStatus?: WhatsappConnectionStatus;
+  whatsappActivationCode?: string | null;
+  whatsappConnectedAt?: string | null;
+  whatsappLastActivity?: string | null;
+  whatsappGroupName?: string | null;
   createdAt?: string;
   updatedAt?: string;
   totalJogadores?: number;

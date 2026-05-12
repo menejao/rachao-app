@@ -89,6 +89,11 @@ const store: {
       status: "ATIVA",
       totalJogadores: 10,
       whatsappGroupId: "grupo-quadra",
+      whatsappStatus: "CONECTADO" as const,
+      whatsappActivationCode: "RACHAO-DEMO",
+      whatsappConnectedAt: "2026-05-01T20:00:00.000Z",
+      whatsappLastActivity: "2026-05-14T20:30:00.000Z",
+      whatsappGroupName: "Racha Quarta 🏟️",
     },
   ],
   jogadores: [

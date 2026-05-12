@@ -1,17 +1,19 @@
 export const dynamic = 'force-dynamic';
 
-import { CheckCircle2, Settings, XCircle } from "lucide-react";
+import { Settings } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionTitle } from "@/components/common/section-title";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { TurmaSettingsForm } from "@/components/configuracoes/turma-settings-form";
+import { WhatsAppOnboardingCard } from "@/components/whatsapp/whatsapp-onboarding-card";
+import { WhatsAppFaq } from "@/components/whatsapp/whatsapp-faq";
 import { getDashboardData } from "@/lib/dashboard-data";
-import { isWhatsAppConfigured } from "@/lib/notifications/service";
 
 export default async function ConfiguracoesPage() {
-  const [data, waConfigured] = await Promise.all([getDashboardData(), Promise.resolve(isWhatsAppConfigured())]);
+  const data = await getDashboardData();
   const turma = data.turmas[0];
+  const botPhone = process.env.ZAPI_BOT_PHONE ?? "NAO_CONFIGURADO";
 
   return (
     <AppShell data={data} currentPath="/configuracoes">
@@ -39,36 +41,23 @@ export default async function ConfiguracoesPage() {
         <div className="space-y-6">
           <Card>
             <CardContent className="pt-5">
-              <SectionTitle title="WhatsApp" description="Integração com Meta Cloud API." />
-              <div
-                className={[
-                  "mt-4 flex items-center gap-3 rounded-2xl border px-4 py-3",
-                  waConfigured
-                    ? "border-emerald-500/20 bg-emerald-500/[0.05]"
-                    : "border-rose-400/20 bg-rose-500/[0.05]",
-                ].join(" ")}
-              >
-                {waConfigured ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                    <p className="text-sm text-emerald-300">Configurado e pronto para envio.</p>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-4 w-4 shrink-0 text-rose-400" />
-                    <p className="text-sm text-rose-300">Não configurado.</p>
-                  </>
-                )}
-              </div>
-              {!waConfigured && (
-                <div className="mt-3 space-y-1.5 rounded-2xl bg-white/[0.03] px-4 py-3">
-                  <p className="text-[11px] font-semibold text-stone-400">Variáveis necessárias:</p>
-                  <code className="block text-[11px] text-stone-500">META_WA_PHONE_NUMBER_ID</code>
-                  <code className="block text-[11px] text-stone-500">META_WA_ACCESS_TOKEN</code>
-                  <code className="block text-[11px] text-stone-500">META_WA_WEBHOOK_VERIFY_TOKEN</code>
-                  <p className="mt-2 text-[10px] text-stone-600">Configure em Settings → Environment Variables na Vercel.</p>
+              <SectionTitle title="WhatsApp" description="Integracao com grupo do seu rachao." />
+              {turma ? (
+                <div className="mt-4">
+                  <WhatsAppOnboardingCard turma={turma} botPhone={botPhone} />
                 </div>
+              ) : (
+                <p className="mt-3 text-sm text-stone-500">Crie uma turma primeiro.</p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-5">
+              <SectionTitle title="Duvidas frequentes" description="Como funciona a integracao WhatsApp." />
+              <div className="mt-3">
+                <WhatsAppFaq />
+              </div>
             </CardContent>
           </Card>
 
