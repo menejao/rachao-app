@@ -29,6 +29,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
+      id: "passkey",
+      credentials: { token: { type: "text" } },
+      async authorize(credentials) {
+        const { verifyPasskeyToken } = await import("@/lib/passkey-token");
+        const userId = verifyPasskeyToken(credentials.token as string);
+        if (!userId || !process.env.DATABASE_URL) return null;
+
+        const { db } = await import("@/lib/prisma");
+        const dbUser = await db.user.findUnique({ where: { id: userId } });
+        if (!dbUser) return null;
+
+        const membership = await db.membership.findFirst({
+          where: { userId: dbUser.id },
+          orderBy: { createdAt: "asc" },
+        });
+
+        return {
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          role: (membership?.role ?? "PLAYER") as "ADMIN" | "PLAYER",
+          activeTeamId: membership?.turmaId ?? "",
+        };
+      },
+    }),
+    Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },

@@ -8,6 +8,7 @@ import { getDashboardData } from "@/lib/dashboard-data";
 import { PageHeader } from "@/components/common/page-header";
 import { ProfileForm } from "@/components/perfil/profile-form";
 import { NotificationPrefsForm } from "@/components/perfil/notification-prefs-form";
+import { PasskeyRegisterButton } from "@/components/auth/passkey-register-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionTitle } from "@/components/common/section-title";
 import { isWhatsAppConfigured } from "@/lib/notifications/service";
@@ -154,6 +155,20 @@ export default async function PerfilPage() {
                 <CardContent className="pt-6">
                   <SectionTitle title="Notificações" description="Controle o que você recebe via WhatsApp." />
                   <NotificationPrefsForm initial={notifPrefs} />
+                </CardContent>
+              </Card>
+            )}
+
+            {process.env.DATABASE_URL && (
+              <Card>
+                <CardContent className="pt-6">
+                  <SectionTitle
+                    title="Segurança"
+                    description="Entre sem senha usando Face ID ou impressão digital."
+                  />
+                  <div className="mt-4">
+                    <PasskeyRegisterButton />
+                  </div>
                 </CardContent>
               </Card>
             )}

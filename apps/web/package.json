@@ -14,6 +14,8 @@
     "@prisma/client": "^6.7.0",
     "@rachao/types": "0.1.0",
     "@rachao/utils": "0.1.0",
+    "@simplewebauthn/browser": "^9.0.1",
+    "@simplewebauthn/server": "^9.0.3",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",

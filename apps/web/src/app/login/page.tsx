@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { PasskeyLoginButton } from "@/components/auth/passkey-login-button";
 
 function LoginForm() {
   const router = useRouter();
@@ -93,6 +94,16 @@ function LoginForm() {
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <div className="mt-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/[0.06]" />
+          <span className="text-xs text-stone-600">ou</span>
+          <div className="h-px flex-1 bg-white/[0.06]" />
+        </div>
+
+        <div className="mt-4">
+          <PasskeyLoginButton email={email} redirectTo={from} onError={setError} />
+        </div>
 
         <p className="mt-6 text-center text-sm text-stone-500">
           Sem conta?{" "}

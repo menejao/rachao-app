@@ -64,10 +64,25 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  passkeyChallenge      String?
   memberships           Membership[]
   invitesSent           Invite[]                    @relation("InviteCreator")
   notificationPreference UserNotificationPreference?
   notificationLogs      NotificationLog[]
+  passkeys              Passkey[]
+}
+
+model Passkey {
+  id           String   @id @default(cuid())
+  userId       String
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt   @default(0)
+  deviceType   String   @default("singleDevice")
+  backedUp     Boolean  @default(false)
+  transports   String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Membership {
