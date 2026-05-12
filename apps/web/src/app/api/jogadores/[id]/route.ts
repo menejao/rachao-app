@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { updateJogador, deleteJogador } from "@/lib/store";
 import { UpdateJogadorSchema } from "@/lib/schemas";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,6 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.ativo !== undefined && { ativo: body.ativo }),
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({
         id: jogador.id,
         turmaId: jogador.turmaId,
@@ -57,6 +59,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
       await db.jogador.delete({ where: { id } });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({ ok: true });
     }
 

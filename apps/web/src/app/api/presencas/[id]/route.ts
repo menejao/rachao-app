@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { updatePresenca } from "@/lib/store";
 import { sendNotification, isWhatsAppConfigured } from "@/lib/notifications/service";
 import { UpdatePresencaSchema } from "@/lib/schemas";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
               where: { id },
               data: { resposta: "SIM", posicaoFila: nextPos, respondeuEm: new Date() },
             });
+            revalidateDashboard(session.user.id);
             return NextResponse.json({ ok: true, filaPos: nextPos });
           }
         }
@@ -46,6 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           where: { id },
           data: { resposta: "SIM", posicaoFila: null, respondeuEm: new Date() },
         });
+        revalidateDashboard(session.user.id);
         return NextResponse.json({ ok: true });
       }
 
@@ -87,6 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             }
           }
         }
+        revalidateDashboard(session.user.id);
         return NextResponse.json({ ok: true, promoted: primeiroDaFila?.id ?? null });
       }
 
@@ -101,6 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           where: { jogoId: presenca.jogoId, posicaoFila: { gt: myPos } },
           data: { posicaoFila: { decrement: 1 } },
         });
+        revalidateDashboard(session.user.id);
         return NextResponse.json({ ok: true });
       }
 
@@ -109,6 +114,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         where: { id },
         data: { resposta: body.resposta, respondeuEm: new Date() },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({ ok: true });
     }
 

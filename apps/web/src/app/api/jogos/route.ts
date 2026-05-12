@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createJogo } from "@/lib/store";
 import { CreateJogoSchema } from "@/lib/schemas";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
           observacoes: body.observacoes ?? null,
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({
         id: jogo.id,
         turmaId: jogo.turmaId,

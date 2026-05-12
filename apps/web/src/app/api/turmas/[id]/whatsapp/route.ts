@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { generateActivationCode } from "@/lib/activation-code";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 import type { TurmaSummary, WhatsappConnectionStatus } from "@rachao/types";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           whatsappLastActivity: null,
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({ ok: true, turma: mapTurma(turma) });
     }
 
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           whatsappStatus: current?.whatsappStatus === "CONECTADO" ? "CONECTADO" : "AGUARDANDO",
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({ ok: true, turma: mapTurma(turma) });
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { UpdateJogoSchema } from "@/lib/schemas";
 import type { JogoStatus } from "@prisma/client";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,6 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.limitJogadores !== undefined && { limitJogadores: body.limitJogadores }),
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({
         id: jogo.id,
         turmaId: jogo.turmaId,
@@ -49,6 +51,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (process.env.DATABASE_URL) {
       const { db } = await import("@/lib/prisma");
       await db.jogo.delete({ where: { id } });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({ ok: true });
     }
 

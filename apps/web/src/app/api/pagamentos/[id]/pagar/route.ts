@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { markPagamentoPago } from "@/lib/store";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,6 +18,7 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
         data: { status: "PAGO", pagoEm: new Date() },
         include: { jogador: true },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({
         id: pagamento.id,
         turmaId: pagamento.turmaId,

@@ -1,3 +1,4 @@
+import { unstable_cache, revalidateTag } from "next/cache";
 import type {
   DashboardData,
   FinanceiroResumo,
@@ -11,21 +12,16 @@ import type {
 import { computeDashboard } from "@/lib/store";
 import { generateActivationCode } from "@/lib/activation-code";
 
-export async function getDashboardData(): Promise<DashboardData> {
-  if (!process.env.DATABASE_URL) {
-    return computeDashboard();
-  }
+export function revalidateDashboard(userId: string) {
+  revalidateTag(`dashboard-${userId}`);
+}
 
-  const { auth } = await import("@/auth");
-  const session = await auth();
-  if (!session) return computeDashboard();
-
+async function fetchFromDB(userId: string, turmaId: string | undefined): Promise<DashboardData> {
   const { db } = await import("@/lib/prisma");
-  const turmaId = session.user.activeTeamId;
 
   const [turmas, jogadores, jogos, presencas, times, pagamentos, gols] = await Promise.all([
     db.turma.findMany({
-      where: { memberships: { some: { userId: session.user.id } } },
+      where: { memberships: { some: { userId } } },
     }),
     db.jogador.findMany({
       where: { turmaId },
@@ -87,15 +83,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     mensagemCobranca: t.mensagemCobranca ?? null,
     totalJogadores: jogadoresByTurma.get(t.id) ?? 0,
   }));
-
-  // Ensure all turmas have activation codes
-  for (let i = 0; i < turmas.length; i++) {
-    if (!turmas[i].whatsappActivationCode) {
-      const code = generateActivationCode();
-      await db.turma.update({ where: { id: turmas[i].id }, data: { whatsappActivationCode: code } }).catch(() => null);
-      turmasSummary[i].whatsappActivationCode = code;
-    }
-  }
 
   const jogosSummary: JogoSummary[] = jogos.map((j) => ({
     id: j.id,
@@ -211,4 +198,44 @@ export async function getDashboardData(): Promise<DashboardData> {
       presencaRanking: [...simByPlayer.values()].sort((a, b) => b.total - a.total),
     },
   };
+}
+
+export async function getDashboardData(): Promise<DashboardData> {
+  if (!process.env.DATABASE_URL) {
+    return computeDashboard();
+  }
+
+  const { auth } = await import("@/auth");
+  const session = await auth();
+  if (!session) return computeDashboard();
+
+  const userId = session.user.id;
+  const turmaId = session.user.activeTeamId;
+
+  const data = await unstable_cache(
+    () => fetchFromDB(userId, turmaId),
+    [`dashboard`, userId, turmaId ?? ""],
+    {
+      tags: [`dashboard-${userId}`],
+      revalidate: 30,
+    }
+  )();
+
+  // Ensure activation codes — side effect outside cache
+  if (process.env.DATABASE_URL) {
+    const { db } = await import("@/lib/prisma");
+    const needsCodes = data.turmas.filter((t) => !t.whatsappActivationCode);
+    if (needsCodes.length > 0) {
+      await Promise.all(
+        needsCodes.map(async (t) => {
+          const code = generateActivationCode();
+          await db.turma.update({ where: { id: t.id }, data: { whatsappActivationCode: code } }).catch(() => null);
+          t.whatsappActivationCode = code;
+        })
+      );
+      revalidateDashboard(userId);
+    }
+  }
+
+  return data;
 }

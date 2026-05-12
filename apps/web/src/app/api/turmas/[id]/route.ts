@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { updateTurma } from "@/lib/store";
 import { UpdateTurmaSchema } from "@/lib/schemas";
+import { revalidateDashboard } from "@/lib/dashboard-data";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.mensagemCobranca !== undefined && { mensagemCobranca: body.mensagemCobranca }),
         },
       });
+      revalidateDashboard(session.user.id);
       return NextResponse.json({
         id: turma.id,
         nome: turma.nome,
