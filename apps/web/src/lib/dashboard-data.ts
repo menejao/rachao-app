@@ -75,6 +75,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     whatsappConnectedAt: t.whatsappConnectedAt?.toISOString() ?? null,
     whatsappLastActivity: t.whatsappLastActivity?.toISOString() ?? null,
     whatsappGroupName: t.whatsappGroupName ?? null,
+    autoConfirmacaoHoras: t.autoConfirmacaoHoras ?? 48,
+    autoLembreteHoras: t.autoLembreteHoras ?? 24,
+    autoFechamentoHoras: t.autoFechamentoHoras ?? 2,
+    autoTimesHoras: t.autoTimesHoras ?? 1,
+    cobrancaDiaVencimento: t.cobrancaDiaVencimento ?? 10,
+    cobrancaLembreteDiasAntes: t.cobrancaLembreteDiasAntes ?? 3,
+    cobrancaLembreteDia: t.cobrancaLembreteDia ?? true,
+    cobrancaLembreteApos: t.cobrancaLembreteApos ?? 3,
+    pixKey: t.pixKey ?? null,
+    mensagemCobranca: t.mensagemCobranca ?? null,
     totalJogadores: jogadoresByTurma.get(t.id) ?? 0,
   }));
 

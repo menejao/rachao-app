@@ -48,6 +48,16 @@ export const UpdateTurmaSchema = z.object({
   status: z.enum(["ATIVA", "INATIVA"]).optional(),
   whatsappGroupId: z.string().nullable().optional(),
   whatsappProvider: z.enum(["zapi", "evolution", "mock"]).nullable().optional(),
+  autoConfirmacaoHoras: z.number().int().min(1).max(720).optional(),
+  autoLembreteHoras: z.number().int().min(1).max(720).optional(),
+  autoFechamentoHoras: z.number().int().min(1).max(48).optional(),
+  autoTimesHoras: z.number().int().min(1).max(24).optional(),
+  cobrancaDiaVencimento: z.number().int().min(1).max(28).optional(),
+  cobrancaLembreteDiasAntes: z.number().int().min(0).max(30).optional(),
+  cobrancaLembreteDia: z.boolean().optional(),
+  cobrancaLembreteApos: z.number().int().min(0).max(30).optional(),
+  pixKey: z.string().nullable().optional(),
+  mensagemCobranca: z.string().nullable().optional(),
 });
 
 export const UpdatePresencaSchema = z.object({

@@ -27,6 +27,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.status !== undefined && { status: body.status }),
           ...(body.whatsappGroupId !== undefined && { whatsappGroupId: body.whatsappGroupId }),
           ...(body.whatsappProvider !== undefined && { whatsappProvider: body.whatsappProvider }),
+          ...(body.autoConfirmacaoHoras !== undefined && { autoConfirmacaoHoras: body.autoConfirmacaoHoras }),
+          ...(body.autoLembreteHoras !== undefined && { autoLembreteHoras: body.autoLembreteHoras }),
+          ...(body.autoFechamentoHoras !== undefined && { autoFechamentoHoras: body.autoFechamentoHoras }),
+          ...(body.autoTimesHoras !== undefined && { autoTimesHoras: body.autoTimesHoras }),
+          ...(body.cobrancaDiaVencimento !== undefined && { cobrancaDiaVencimento: body.cobrancaDiaVencimento }),
+          ...(body.cobrancaLembreteDiasAntes !== undefined && { cobrancaLembreteDiasAntes: body.cobrancaLembreteDiasAntes }),
+          ...(body.cobrancaLembreteDia !== undefined && { cobrancaLembreteDia: body.cobrancaLembreteDia }),
+          ...(body.cobrancaLembreteApos !== undefined && { cobrancaLembreteApos: body.cobrancaLembreteApos }),
+          ...(body.pixKey !== undefined && { pixKey: body.pixKey }),
+          ...(body.mensagemCobranca !== undefined && { mensagemCobranca: body.mensagemCobranca }),
         },
       });
       return NextResponse.json({

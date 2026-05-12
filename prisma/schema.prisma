@@ -116,8 +116,18 @@ model Turma {
   whatsappActivationCode  String?                  @unique
   whatsappConnectedAt     DateTime?
   whatsappLastActivity    DateTime?
-  whatsappGroupName       String?
-  createdAt               DateTime    @default(now())
+  whatsappGroupName           String?
+  autoConfirmacaoHoras        Int     @default(48)
+  autoLembreteHoras           Int     @default(24)
+  autoFechamentoHoras         Int     @default(2)
+  autoTimesHoras              Int     @default(1)
+  cobrancaDiaVencimento       Int     @default(10)
+  cobrancaLembreteDiasAntes   Int     @default(3)
+  cobrancaLembreteDia         Boolean @default(true)
+  cobrancaLembreteApos        Int     @default(3)
+  pixKey                      String?
+  mensagemCobranca            String?
+  createdAt                   DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
   memberships      Membership[]
@@ -156,9 +166,13 @@ model Jogo {
   turmaId        String
   dataJogo       DateTime
   status         JogoStatus @default(RASCUNHO)
-  observacoes    String?
-  limitJogadores Int?
-  createdAt      DateTime   @default(now())
+  observacoes           String?
+  limitJogadores        Int?
+  confirmationSentAt    DateTime?
+  pendingReminderSentAt DateTime?
+  listClosedAt          DateTime?
+  teamsGeneratedAt      DateTime?
+  createdAt             DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
   turma     Turma      @relation(fields: [turmaId], references: [id])

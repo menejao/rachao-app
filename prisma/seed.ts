@@ -5,8 +5,8 @@ const db = new PrismaClient({
   datasources: { db: { url: process.env.DIRECT_URL ?? process.env.DATABASE_URL } },
 });
 
-// bcrypt $2b$10$ hash for "senha123"
-const PASSWORD_HASH = "$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi";
+// bcrypt hash for "senha123"
+const PASSWORD_HASH = "$2a$10$cEXrECWcM3koYgttDrM5VuOWgrqvY1Qd9Uz4LKHNnXsGGCPaWmWoe";
 
 function hashPhone(n: number) {
   return `5511${String(90000000 + n).padStart(8, "0")}`;

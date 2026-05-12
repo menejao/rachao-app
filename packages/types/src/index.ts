@@ -34,6 +34,16 @@ export interface TurmaSummary {
   whatsappConnectedAt?: string | null;
   whatsappLastActivity?: string | null;
   whatsappGroupName?: string | null;
+  autoConfirmacaoHoras?: number;
+  autoLembreteHoras?: number;
+  autoFechamentoHoras?: number;
+  autoTimesHoras?: number;
+  cobrancaDiaVencimento?: number;
+  cobrancaLembreteDiasAntes?: number;
+  cobrancaLembreteDia?: boolean;
+  cobrancaLembreteApos?: number;
+  pixKey?: string | null;
+  mensagemCobranca?: string | null;
   createdAt?: string;
   updatedAt?: string;
   totalJogadores?: number;
