@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, ignored: true, reason: "Payload inválido" });
     }
 
-    const data = parsed.data;
+    const data = parsed.data!;
 
     if (data.fromMe || !data.isGroup) {
       return NextResponse.json({ ok: true, ignored: true, reason: "fromMe ou não é grupo" });
