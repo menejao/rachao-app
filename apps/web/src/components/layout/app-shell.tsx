@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { InactivityWatcher } from "@/components/layout/inactivity-watcher";
 
 export async function AppShell({
   data,
@@ -42,6 +43,7 @@ export async function AppShell({
       </div>
 
       <MobileNav currentPath={currentPath} role={user?.role} />
+      <InactivityWatcher />
     </div>
   );
 }
